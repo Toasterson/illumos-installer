@@ -1,0 +1,24 @@
+//
+// Created by intellij-pest on 2022-04-12
+// config
+// Author: Till Wegmueller <toasterson@gmail.com>
+//
+
+WHITESPACE = _{ " " | "\t" }
+COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ NEWLINE}
+
+string = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+quoteless_string = { (ASCII_ALPHANUMERIC | "_" | "-" | "." )+}
+
+command_word = @{ (ASCII_ALPHA_LOWER | "." | "-" | "_" )+ }
+command_argument = ${ "--" ~ command_word ~ "=" ~ string }
+command_option = ${ quoteless_string | string }
+command = { command_word ~ (command_argument | command_option )* ~ NEWLINE }
+config = { SOI ~ (command)+ ~ EOI }
