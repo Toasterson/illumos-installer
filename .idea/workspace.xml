@@ -7,14 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/libinstall/src/config.pest" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libinstall/src/config.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libinstall.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/installer.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="InteliJ config changes">
+      <change afterPath="$PROJECT_DIR$/libinstall/src/config/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libinstall/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/libinstall/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libinstall/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libinstall/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libinstall/src/config.rs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,8 +51,10 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="TF_FMT" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.format.on.save.advertiser.fired" value="true" />
     <property name="go.formatter.settings.were.checked" value="true" />
@@ -69,6 +67,12 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/libinstall/src/config" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
@@ -106,6 +110,21 @@
       <option name="presentableId" value="Default" />
       <updated>1649773525262</updated>
     </task>
+    <task id="LOCAL-00001" summary="Implement commands and parser of commands">
+      <created>1649819496913</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1649819496913</updated>
+    </task>
+    <task id="LOCAL-00002" summary="InteliJ config changes">
+      <created>1649819595791</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1649819595792</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -121,5 +140,11 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Implement commands and parser of commands" />
+    <MESSAGE value="InteliJ config changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="InteliJ config changes" />
   </component>
 </project>

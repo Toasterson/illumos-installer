@@ -1,4 +1,3 @@
-
 pub type InstructionsSet = Vec<InstallInstruction>;
 
 #[derive(Debug)]
@@ -14,7 +13,7 @@ pub enum InstallInstruction {
     CreateBootEnvironment(String),
     InstallImage {
         url: String,
-        image_options: Vec<(String, String)>,
+        image_options: Option<Vec<(String, String)>>,
     },
     CreateDataset {
         name: String,
@@ -231,6 +230,15 @@ pub fn parse_config_to_instructions(instructions: Vec<Config>) -> Result<Instruc
                     }
                     "locale" => {
                         set.push(InstallInstruction::SetLocale { name: options[0].clone(), unicode: true })
+                    }
+                    "bootenv" | "newbe" => {
+                        set.push(InstallInstruction::CreateBootEnvironment(options[0].clone()))
+                    }
+                    "image" | "install-image" => {
+                        set.push(InstallInstruction::InstallImage {
+                            url: options[0].clone(),
+                            image_options: args.clone(),
+                        })
                     }
                     _ => return Err(anyhow!(UnknownInstruction(cmd.clone())))
                 }
