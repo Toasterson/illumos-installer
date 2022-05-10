@@ -1,5 +1,9 @@
 [workspace]
 
 members = [
-	"libinstall"
+	"libshadow",
+	"libcfgparser",
+	"libsysconfig",
+	"libinstall",
+	"passutil"
 ]

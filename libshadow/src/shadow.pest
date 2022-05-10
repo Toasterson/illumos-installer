@@ -1,0 +1,24 @@
+//
+// Created by intellij-pest on 2022-04-18
+// shadow
+// Author: toasty
+//
+
+// Format
+// username:password:lastchg:min:max:warn:inactive:expire:flag
+
+username = { ASCII_ALPHANUMERIC+ }
+password = { ( "." | "/" | '0'..'9' | 'A'..'Z' | 'a'..'z' | "$" | "," )+ }
+locked_password = { "*LK*" }
+no_login = { "NL" }
+no_password = { "NP" }
+lastchg = { NUMBER+ }
+min = { NUMBER+ }
+max = { NUMBER+ }
+warn = { NUMBER+ }
+inactive = { NUMBER+ }
+expire = {NUMBER+ }
+flag = { NUMBER+ }
+shadow_entry = { username ~ ":" ~ (locked_password | no_login | no_password | password) ~ ":" ~  lastchg? ~ ":" ~
+                min? ~ ":" ~ max? ~ ":" ~ warn? ~ ":" ~ inactive? ~ ":" ~ expire? ~ ":" ~ flag? }
+shadow_file = {SOI ~ (shadow_entry ~ NEWLINE?)+ ~ EOI}

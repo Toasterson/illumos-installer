@@ -4,7 +4,11 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/libinstall/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/libshadow/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/passutil/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/libcfgparser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/libsysconfig/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
