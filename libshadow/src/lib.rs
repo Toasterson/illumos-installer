@@ -2,10 +2,9 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use pest::Parser;
 use anyhow::{anyhow, Result};
 use pest::iterators::Pairs;
-
+use pest::Parser;
 
 #[allow(dead_code)]
 pub static SHADOW_FILE: &str = "/etc/shadow";
@@ -28,7 +27,7 @@ pub struct ShadowEntry {
 
 impl Default for ShadowEntry {
     fn default() -> Self {
-        ShadowEntry{
+        ShadowEntry {
             username: String::new(),
             password_hash: String::new(),
             password_locked: false,
@@ -40,13 +39,12 @@ impl Default for ShadowEntry {
             warn: -1,
             inactive: -1,
             expire: -1,
-            flag: 0
+            flag: 0,
         }
     }
 }
 
 impl ShadowEntry {
-
     /// Update the entries password hash in a safe way
     /// (meaning use a good cryptographic algorithm)
     pub fn update_password_hash(&mut self, clear_new_password: &str) -> Result<()> {
@@ -66,7 +64,7 @@ impl ShadowEntry {
     pub fn check_password(&self, password: &str) -> Result<()> {
         use pwhash::unix::verify;
         if verify(password, &self.password_hash) {
-            return Ok(())
+            return Ok(());
         }
 
         Err(anyhow!("Passwords do not match"))
@@ -143,16 +141,15 @@ impl ShadowEntry {
 
 #[derive(Debug, Default)]
 pub struct ShadowFile {
-    entries: Vec<ShadowEntry>
+    entries: Vec<ShadowEntry>,
 }
 
 impl ShadowFile {
-
     /// Get the shadow entry with `username` as username
     pub fn get_entry(&self, username: &str) -> Option<ShadowEntry> {
         for e in &self.entries {
             if e.username.as_str() == username {
-                return Some(e.clone())
+                return Some(e.clone());
             }
         }
 
@@ -165,7 +162,7 @@ impl ShadowFile {
         for (i, e) in self.entries.iter().enumerate() {
             if e.username == entry.username {
                 self.entries[i] = entry.clone();
-                return
+                return;
             }
         }
     }
@@ -180,16 +177,17 @@ impl ShadowFile {
                 file += "\n"
             }
 
-            file += &format!("{}:{}:{}:{}:{}:{}:{}:{}:{}",
-                     e.username,
-                     e.print_password_entry(),
-                     e.print_lastchg(),
-                     e.print_min(),
-                     e.print_max(),
-                     e.print_warn(),
-                     e.print_inactive(),
-                     e.print_expire(),
-                     e.print_flag()
+            file += &format!(
+                "{}:{}:{}:{}:{}:{}:{}:{}:{}",
+                e.username,
+                e.print_password_entry(),
+                e.print_lastchg(),
+                e.print_min(),
+                e.print_max(),
+                e.print_warn(),
+                e.print_inactive(),
+                e.print_expire(),
+                e.print_flag()
             )
         }
 
@@ -199,10 +197,10 @@ impl ShadowFile {
 
 /// This function provides a safe default to generate a password hash for
 /// /etc/shadow files. Use this to prehash a password in the configuration
-/// ```rust
+/// ```no_run
 /// use libshadow::gen_password_hash;
 ///
-/// let hash = gen_password_hash("clear_password")?;
+/// let hash = gen_password_hash("clear_password").unwrap();
 /// // Do something with Hash
 /// ```
 pub fn gen_password_hash(clear_password: &str) -> Result<String> {
@@ -216,12 +214,12 @@ struct ShadowParser;
 
 /// Parse a Shadow file and get the entries in easily
 /// changeable form
-/// ```rust
+/// ```no_run
 /// use libshadow::{parse_shadow_file, SHADOW_FILE};
 /// use std::fs;
-/// let contents = fs::read_to_string(SHADOW_FILE)?;
+/// let contents = fs::read_to_string(SHADOW_FILE).unwrap();
 ///
-/// let shadow = parse_shadow_file(&contents)?;
+/// let shadow = parse_shadow_file(&contents).unwrap();
 /// // Do something with the file
 /// let new_file = shadow.serialize();
 /// // Do something with the new file
@@ -236,21 +234,11 @@ pub fn parse_shadow_file(file: &str) -> Result<ShadowFile> {
             let mut shadow_entry = ShadowEntry::default();
             for entry_pair in file_pair.into_inner() {
                 match entry_pair.as_rule() {
-                    Rule::username => {
-                        shadow_entry.username = entry_pair.as_str().into()
-                    }
-                    Rule::password => {
-                        shadow_entry.password_hash = entry_pair.as_str().into()
-                    }
-                    Rule::no_login => {
-                        shadow_entry.no_login = true
-                    }
-                    Rule::no_password => {
-                        shadow_entry.no_password = true
-                    }
-                    Rule::locked_password => {
-                        shadow_entry.password_locked = true
-                    }
+                    Rule::username => shadow_entry.username = entry_pair.as_str().into(),
+                    Rule::password => shadow_entry.password_hash = entry_pair.as_str().into(),
+                    Rule::no_login => shadow_entry.no_login = true,
+                    Rule::no_password => shadow_entry.no_password = true,
+                    Rule::locked_password => shadow_entry.password_locked = true,
                     Rule::lastchg => {
                         shadow_entry.password_last_changed = entry_pair.as_str().parse::<i64>()?;
                     }

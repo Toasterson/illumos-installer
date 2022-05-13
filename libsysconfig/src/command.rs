@@ -1,13 +1,15 @@
+use crate::{CommandOutput, InstructionError};
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
-use crate::{CommandOutput, InstructionError};
-use anyhow::{anyhow, Result};
 
 static SVCCFG_BIN: &str = "/usr/sbin/svccfg";
 
-pub fn run_command(root_path: &str, cmd: &mut Command) -> Result<CommandOutput> {
+pub fn run_command(root_path: &str, cmd_env: HashMap<&str,&str>, program: &str, args: Vec<&str>) -> Result<CommandOutput> {
+    let mut cmd = Command::new(program);
+    let cmd = cmd.envs(cmd_env).args(args);
     let output = cmd.output()?;
     if output.status.success() {
         Ok(CommandOutput {
@@ -23,19 +25,24 @@ pub fn run_command(root_path: &str, cmd: &mut Command) -> Result<CommandOutput> 
     }
 }
 
-pub fn svccfg(root_path: &str, args: Vec<String>) -> Result<CommandOutput> {
+pub fn svccfg(root_path: &str, args: Vec<&str>) -> Result<CommandOutput> {
     let root_p = Path::new(root_path);
-    let repo_db = root_p.join("/etc/svc/repository.db");
 
-    let mut svccfg_cmd = Command::new(SVCCFG_BIN)
-        .env("SVCCFG_CHECKHASH", "1")
-        .env("PKG_INSTALL_ROOT", root_path)
-        .env("SVCCFG_DTD", root_p.join("/usr/share/lib/xml/dtd/service_bundle.dtd.1").to_string_lossy().into_owned())
-        .env("SVCCFG_REPOSITORY", repo_db.to_string_lossy().into_owned())
-        .env("SVCCFG_CONFIGD_PATH", "/lib/svc/bin/svc.configd")
-        .args(args);
+    let dtd_path = root_p
+        .join("/usr/share/lib/xml/dtd/service_bundle.dtd.1")
+        .to_string_lossy().to_string();
 
-    run_command(root_path, svccfg_cmd)
+    let repo_path =  root_p.join("/etc/svc/repository.db").to_string_lossy().to_string();
+
+    let svccfg_env = HashMap::from([
+        ("SVCCFG_CHECKHASH", "1"),
+        ("PKG_INSTALL_ROOT", root_path),
+        ("SVCCFG_DTD", dtd_path.as_str()),
+        ("SVCCFG_REPOSITORY", repo_path.as_str()),
+        ("SVCCFG_CONFIGD_PATH", "/lib/svc/bin/svc.configd")
+    ]);
+
+    run_command(root_path, svccfg_env, SVCCFG_BIN, args)
 }
 
 pub fn svccfg_stdin(root_path: &str, stdin_content: String) -> Result<CommandOutput> {
@@ -45,18 +52,24 @@ pub fn svccfg_stdin(root_path: &str, stdin_content: String) -> Result<CommandOut
     let mut svccfg_child = Command::new(SVCCFG_BIN)
         .env("SVCCFG_CHECKHASH", "1")
         .env("PKG_INSTALL_ROOT", root_path)
-        .env("SVCCFG_DTD", root_p.join("/usr/share/lib/xml/dtd/service_bundle.dtd.1").to_string_lossy().into_owned())
+        .env(
+            "SVCCFG_DTD",
+            root_p
+                .join("/usr/share/lib/xml/dtd/service_bundle.dtd.1")
+                .to_string_lossy()
+                .into_owned(),
+        )
         .env("SVCCFG_REPOSITORY", repo_db.to_string_lossy().into_owned())
         .env("SVCCFG_CONFIGD_PATH", "/lib/svc/bin/svc.configd")
         .stdin(Stdio::piped())
         .spawn()?;
 
-    let mut stdin = svccfg_child.stdin.take()?;
+    let mut stdin = svccfg_child.stdin.take().unwrap();
     std::thread::spawn(move || {
-        stdin.write_all(stdin_content.as_bytes())?;
+        stdin.write_all(stdin_content.as_bytes()).unwrap();
     });
 
-    let output = child.wait_with_output()?;
+    let output = svccfg_child.wait_with_output()?;
 
     if output.status.success() {
         Ok(CommandOutput {

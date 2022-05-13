@@ -1,15 +1,17 @@
-mod mock_driver;
+mod command;
 mod illumos_driver;
 mod keywords;
-mod command;
+mod mock_driver;
 
-use std::collections::HashMap;
+extern crate tera;
+
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
-use regex::Regex;
 use libcfgparser::Keyword;
-use thiserror::Error;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use thiserror::Error;
 
 pub type InstructionsSet = Vec<Instruction>;
 
@@ -19,7 +21,7 @@ pub enum RootPasswordType {
     Hash(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum NetworkConfig {
     DHCP,
     DHCPStateful,
@@ -42,7 +44,7 @@ pub enum Instruction {
         name: String,
         unicode: bool,
     },
-    SetupDNS{
+    SetupDNS {
         domain: Option<String>,
         search: Option<String>,
         nameservers: Vec<String>,
@@ -52,7 +54,7 @@ pub enum Instruction {
         route_match: String,
         gateway: String,
     },
-    SetRootPassword (RootPasswordType),
+    SetRootPassword(RootPasswordType),
     SetHostname(String),
     SetKeymap(String),
     SetTimezone(String),
@@ -73,6 +75,7 @@ pub enum Instruction {
     },
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct CommandOutput {
     command: String,
@@ -87,12 +90,9 @@ enum InstructionError {
     #[error("option {0} is not known for instruction {1}")]
     UnknownOptionInInstruction(String, String),
     #[error("applying instruction failed: command: {command} returned {output}")]
-    CommandFailed {
-        command: String,
-        output: String,
-    },
+    CommandFailed { command: String, output: String },
     #[error("The root password has not been encrypted and hashed, aborting")]
-    UnencryptedPassword
+    UnencryptedPassword,
 }
 
 pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
@@ -106,51 +106,59 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                 set.push(Instruction::SetTimezone(c.arguments[0].clone()));
             }
             "setup_terminal" => {
-                let (name_option, label_option, module_option, prompt_option, terminal_type) = if let Some(opts) = c.options {
-                    let mut name_option: Option<String> = None;
-                    let mut label_option: Option<String> = None;
-                    let mut module_option: Option<String> = None;
-                    let mut prompt_option: Option<String> = None;
-                    let mut terminal_type = String::new();
+                let (name_option, label_option, module_option, prompt_option, terminal_type) =
+                    if let Some(opts) = c.options {
+                        let mut name_option: Option<String> = None;
+                        let mut label_option: Option<String> = None;
+                        let mut module_option: Option<String> = None;
+                        let mut prompt_option: Option<String> = None;
+                        let mut terminal_type = String::new();
 
-                    for (key, value) in opts {
-                        match key.as_str() {
-                            "name" => {
-                                name_option = Some(value);
+                        for (key, value) in opts {
+                            match key.as_str() {
+                                "name" => {
+                                    name_option = Some(value);
+                                }
+                                "label" => {
+                                    label_option = Some(value);
+                                }
+                                "module" => {
+                                    module_option = Some(value);
+                                }
+                                "prompt" => {
+                                    prompt_option = Some(value);
+                                }
+                                "type" => {
+                                    terminal_type = value;
+                                }
+                                _ => {
+                                    return Err(anyhow!(
+                                        InstructionError::UnknownOptionInInstruction(c.name, key)
+                                    ))
+                                }
                             }
-                            "label" => {
-                                label_option = Some(value);
-                            }
-                            "module" => {
-                                module_option = Some(value);
-                            }
-                            "prompt" => {
-                                prompt_option = Some(value);
-                            }
-                            "type" => {
-                                terminal_type = value;
-                            }
-                            _ => return Err(anyhow!(InstructionError::UnknownOptionInInstruction(
-                                c.name,
-                                key
-                            )))
                         }
-                    }
 
-                    if terminal_type.is_empty() {
-                        terminal_type = c.arguments[0].clone()
-                    }
+                        if terminal_type.is_empty() {
+                            terminal_type = c.arguments[0].clone()
+                        }
 
-                    (name_option, label_option, module_option, prompt_option, terminal_type)
-                } else {
-                    (None, None, None, None, c.arguments[0].clone())
-                };
+                        (
+                            name_option,
+                            label_option,
+                            module_option,
+                            prompt_option,
+                            terminal_type,
+                        )
+                    } else {
+                        (None, None, None, None, c.arguments[0].clone())
+                    };
                 set.push(Instruction::SetupTerminal {
                     name: name_option,
                     label: label_option,
                     modules: module_option,
                     prompt: prompt_option,
-                    terminal_type
+                    terminal_type,
                 });
             }
             "timeserver" => {
@@ -158,14 +166,21 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
             }
             "network_interface" => {
                 let parsed_options = if let Some(opts) = c.options {
-                    let name_option = if opts.contains_key("name") {Some(opts["name"].clone())} else {None};
+                    let name_option = if opts.contains_key("name") {
+                        Some(opts["name"].clone())
+                    } else {
+                        None
+                    };
                     let (ipv4_option, ipv6_option) = if opts.contains_key("static") {
                         let static_addr = opts["static"].clone();
                         if static_addr.contains(":") {
                             (None, Some(NetworkConfig::Static(static_addr)))
                         } else if opts.contains_key("static6") {
                             let static6_addr = opts["static6"].clone();
-                            (Some(NetworkConfig::Static(static_addr)), Some(NetworkConfig::Static(static6_addr)))
+                            (
+                                Some(NetworkConfig::Static(static_addr)),
+                                Some(NetworkConfig::Static(static6_addr)),
+                            )
                         } else {
                             (Some(NetworkConfig::Static(static_addr)), None)
                         }
@@ -176,7 +191,11 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                         (Some(NetworkConfig::DHCP), Some(NetworkConfig::DHCPStateful))
                     };
 
-                    let primary_option = if opts.contains_key("primary") { true } else { false };
+                    let primary_option = if opts.contains_key("primary") {
+                        true
+                    } else {
+                        false
+                    };
 
                     (name_option, ipv4_option, ipv6_option, primary_option)
                 } else {
@@ -187,7 +206,7 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                     name: parsed_options.0,
                     ipv4: parsed_options.1,
                     ipv6: parsed_options.2,
-                    primary: parsed_options.3
+                    primary: parsed_options.3,
                 })
             }
             "system_locale" => {
@@ -199,7 +218,10 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                 } else {
                     true
                 };
-                set.push(Instruction::SetLocale { name: locale_name, unicode });
+                set.push(Instruction::SetLocale {
+                    name: locale_name,
+                    unicode,
+                });
             }
             "dataset" => {
                 set.push(Instruction::CreateDataset {
@@ -209,15 +231,25 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
             }
             "setup_dns" => {
                 let (option_domain, option_search) = if let Some(opts) = c.options {
-                    (if opts.contains_key("domain") {Some(opts["domain"].clone())} else {None},
-                     if opts.contains_key("search") {Some(opts["search"].clone())} else {None})
+                    (
+                        if opts.contains_key("domain") {
+                            Some(opts["domain"].clone())
+                        } else {
+                            None
+                        },
+                        if opts.contains_key("search") {
+                            Some(opts["search"].clone())
+                        } else {
+                            None
+                        },
+                    )
                 } else {
                     (None, None)
                 };
-                set.push(Instruction::SetupDNS{
+                set.push(Instruction::SetupDNS {
                     domain: option_domain,
                     search: option_search,
-                    nameservers: c.arguments.clone()
+                    nameservers: c.arguments.clone(),
                 });
             }
             "route" => {
@@ -225,13 +257,13 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                     set.push(Instruction::AddRoute {
                         name: c.arguments[0].clone(),
                         route_match: c.arguments[1].clone(),
-                        gateway: c.arguments[2].clone()
+                        gateway: c.arguments[2].clone(),
                     });
                 } else {
                     set.push(Instruction::AddRoute {
                         name: c.arguments[0].clone(),
                         route_match: c.arguments[0].clone(),
-                        gateway: c.arguments[1].clone()
+                        gateway: c.arguments[1].clone(),
                     })
                 }
             }
@@ -243,11 +275,17 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                     if RE.is_match(&c.arguments[0]) {
                         RootPasswordType::Hash(c.arguments[0].clone())
                     } else {
-                        RootPasswordType::Hash(libshadow::gen_password_hash(&c.arguments[0].clone())?)
-                    }
+                        RootPasswordType::Hash(libshadow::gen_password_hash(
+                            &c.arguments[0].clone(),
+                        )?)
+                    },
                 ))
             }
-            _ => return Err(anyhow!(InstructionError::UnknownInstruction(c.name.clone())))
+            _ => {
+                return Err(anyhow!(InstructionError::UnknownInstruction(
+                    c.name.clone()
+                )))
+            }
         }
     }
 
@@ -256,7 +294,7 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
 
 pub enum Driver {
     Mock,
-    Illumos
+    Illumos,
 }
 
 pub struct Image<'a> {
@@ -266,14 +304,14 @@ pub struct Image<'a> {
 
 impl<'a> Image<'a> {
     pub fn new(root_path: &'a str) -> Self {
-        Image{
+        Image {
             root_path,
-            driver: Driver::Illumos
+            driver: Driver::Illumos,
         }
     }
 
     pub fn new_with_driver(root_path: &'a str, driver: Driver) -> Self {
-        Image{ root_path, driver }
+        Image { root_path, driver }
     }
 
     pub fn apply_instruction(&self, instruction: Instruction) -> Result<CommandOutput> {

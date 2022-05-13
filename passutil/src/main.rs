@@ -1,7 +1,7 @@
-use std::fs;
-use clap::{Parser};
 use anyhow::{anyhow, Result};
+use clap::Parser;
 use libshadow::{gen_password_hash, parse_shadow_file, SHADOW_FILE};
+use std::fs;
 
 /// shadow file modification utility
 #[derive(Parser, Debug)]
@@ -16,14 +16,14 @@ struct Args {
     shadow: Option<String>,
 
     /// Print the passwords Hash
-    #[clap(short='H', long)]
+    #[clap(short = 'H', long)]
     hash: Option<String>,
 
     /// Alternate shadow file to modify
     #[clap(short, long)]
     file: Option<String>,
 
-    input: Option<String>
+    input: Option<String>,
 }
 
 fn main() -> Result<()> {
@@ -32,12 +32,14 @@ fn main() -> Result<()> {
     if let Some(hash) = args.hash {
         let hash = gen_password_hash(&hash)?;
         println!("{}", hash);
-        return Ok(())
+        return Ok(());
     }
 
     if let Some(shadow_name) = args.shadow {
         if args.input.is_none() {
-            return Err(anyhow!("Please provide password or hash as positional argument"))
+            return Err(anyhow!(
+                "Please provide password or hash as positional argument"
+            ));
         }
 
         let contents = if let Some(file) = args.file {
@@ -61,10 +63,10 @@ fn main() -> Result<()> {
 
             println!("{}", new_file)
         } else {
-            return Err(anyhow!("No entry named {} in shadow file", account_name))
+            return Err(anyhow!("No entry named {} in shadow file", account_name));
         }
 
-        return Ok(())
+        return Ok(());
     }
 
     Err(anyhow!("Please either specify -H or -s for modes"))

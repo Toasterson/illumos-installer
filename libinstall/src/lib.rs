@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use libcfgparser::Keyword;
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use thiserror::Error;
 
 pub type InstructionsSet = Vec<Instruction>;
 
@@ -30,7 +30,7 @@ pub enum VDEVType {
     Mirror,
     RaidZ1,
     RaidZ2,
-    RaidZ3
+    RaidZ3,
 }
 
 impl Default for VDEVType {
@@ -42,13 +42,13 @@ impl Default for VDEVType {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct VDEVConfiguration {
     pub vdev_type: VDEVType,
-    pub devices: Vec<String>
+    pub devices: Vec<String>,
 }
 
 #[derive(Error, Debug)]
 enum InstructionError {
     #[error("keyword {0} is not known")]
-    UnknownInstruction(String)
+    UnknownInstruction(String),
 }
 
 pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
@@ -95,13 +95,14 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                             }
                             vdev_config.vdev_type = VDEVType::RaidZ3
                         }
-                        _ => {
-                            vdev_config.devices.push(opt)
-                        }
+                        _ => vdev_config.devices.push(opt),
                     }
                 }
                 vdevs.push(vdev_config.clone());
-                set.push(Instruction::CreatePool { vdevs, pool_options });
+                set.push(Instruction::CreatePool {
+                    vdevs,
+                    pool_options,
+                });
             }
             "bootenv" | "newbe" => {
                 set.push(Instruction::CreateBootEnvironment(c.arguments[0].clone()));
@@ -118,7 +119,11 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
                     mount_options: c.options.clone(),
                 });
             }
-            _ => return Err(anyhow!(InstructionError::UnknownInstruction(c.name.clone())))
+            _ => {
+                return Err(anyhow!(InstructionError::UnknownInstruction(
+                    c.name.clone()
+                )))
+            }
         }
     }
 
@@ -133,14 +138,16 @@ mod tests {
     fn serialisation_test() {
         let config_ast: InstructionsSet = vec![
             Instruction::CreatePool {
-                vdevs: vec![
-                    VDEVConfiguration{ vdev_type: VDEVType::Mirror, devices: vec![
-                        "c1t0d0s0".into(), "c2t0d0s0".into(), "c3t0d0s0".into(),
-                    ] }
-                ],
-                pool_options: vec![("ashift".into(), "12".into())]
+                vdevs: vec![VDEVConfiguration {
+                    vdev_type: VDEVType::Mirror,
+                    devices: vec!["c1t0d0s0".into(), "c2t0d0s0".into(), "c3t0d0s0".into()],
+                }],
+                pool_options: vec![("ashift".into(), "12".into())],
             },
-            Instruction::CreateDataset { name: "rpool/test".to_string(), mount_options: None }
+            Instruction::CreateDataset {
+                name: "rpool/test".to_string(),
+                mount_options: None,
+            },
         ];
         let serialized = serde_json::to_string(&config_ast).unwrap();
         println!("serialized = {}", serialized);

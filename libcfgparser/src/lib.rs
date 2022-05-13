@@ -2,11 +2,10 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use std::collections::HashMap;
+use anyhow::{Result};
 use pest::Parser;
-use anyhow::{anyhow, Result};
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 enum Config {
     Instruction(String, Option<Vec<(String, String)>>, Vec<String>),
@@ -17,28 +16,22 @@ enum Config {
     EOI,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize)]
+#[derive(Default, Debug, Deserialize, Serialize, Eq, PartialEq)]
 pub struct Keyword {
     pub name: String,
     pub options: Option<HashMap<String, String>>,
-    pub arguments: Vec<String>
+    pub arguments: Vec<String>,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize)]
 pub struct KeywordDefinition {
-    pub options: Vec<String>
-}
-
-#[derive(Error, Debug)]
-enum ConfigError {
-    #[error("cannot build keyword please check that config file is valid")]
-    NotInstruction()
+    pub options: Vec<String>,
 }
 
 #[derive(Parser, Default, Debug)]
 #[grammar = "config.pest"]
 pub struct SysConfigParser {
-    keywords: HashMap<String, KeywordDefinition>
+    keywords: HashMap<String, KeywordDefinition>,
 }
 
 impl SysConfigParser {
@@ -72,11 +65,7 @@ impl SysConfigParser {
                             _ => panic!(),
                         }
                     }
-                    Config::Instruction(
-                        cmd_str,
-                        arguments,
-                        options
-                    )
+                    Config::Instruction(cmd_str, arguments, options)
                 }
                 Rule::command_word => Config::Command(pair.as_str().into()),
                 Rule::command_argument => {
@@ -84,25 +73,21 @@ impl SysConfigParser {
                     let mut arg_value = String::new();
                     for p in pair.into_inner() {
                         match parse_value(p) {
-                            Config::Command(cmd) => {
-                                arg_name= cmd
-                            }
-                            Config::Value(val) => {
-                                arg_value = val
-                            }
+                            Config::Command(cmd) => arg_name = cmd,
+                            Config::Value(val) => arg_value = val,
                             _ => panic!(),
                         }
                     }
                     Config::Argument(arg_name, arg_value)
-                },
-                Rule::string => {
-                    Config::Value(pair.into_inner().next().unwrap().as_str().into())
                 }
+                Rule::string => Config::Value(pair.into_inner().next().unwrap().as_str().into()),
                 Rule::command_option => {
                     let inner_pair = pair.into_inner().next().unwrap();
                     match inner_pair.as_rule() {
                         Rule::quoteless_string => Config::Option(inner_pair.as_str().into()),
-                        Rule::string => Config::Option(inner_pair.into_inner().next().unwrap().as_str().into()),
+                        Rule::string => {
+                            Config::Option(inner_pair.into_inner().next().unwrap().as_str().into())
+                        }
                         _ => panic!(),
                     }
                 }
@@ -125,7 +110,7 @@ impl SysConfigParser {
         for pair in config.into_inner() {
             match parse_value(pair) {
                 Config::Instruction(name, opts, args) => {
-                    let opts= if let Some(o) = opts {
+                    let opts = if let Some(o) = opts {
                         let mut m = HashMap::<String, String>::new();
                         for (key, value) in o {
                             if !m.contains_key(&key) {
@@ -138,17 +123,14 @@ impl SysConfigParser {
                     };
                     // TODO check if Parser has keyword configured
                     // Error if not
-                    keywords.push(Keyword{
+                    keywords.push(Keyword {
                         name,
                         options: opts,
-                        arguments: args
+                        arguments: args,
                     })
                 }
-                _ => {
-                    return Err(anyhow!(ConfigError::NotInstruction()))
-                }
+                _ => {},
             }
-
         }
 
         Ok(keywords)
@@ -158,19 +140,38 @@ impl SysConfigParser {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use crate::{KeywordDefinition, SysConfigParser};
+    use crate::{Keyword, KeywordDefinition, SysConfigParser};
 
     #[test]
     fn initial_test() {
-        let config_file = "zpool-create --ashift=\"12\" mirror c1t0d0s0 c2t0d0s0 c3t0d0s0\nlocale en_US\n";
+        let config_file =
+            "zpool-create --ashift=\"12\" mirror c1t0d0s0 c2t0d0s0 c3t0d0s0\nlocale en_US\n";
         let mut parser = SysConfigParser::default();
-        parser.add_keyword(String::from("zpool-create"), KeywordDefinition{
-            options: vec![String::from("ashift")],
-        });
-        parser.add_keyword(String::from("locale"), KeywordDefinition{
-            options: vec![]
-        });
+        parser.add_keyword(
+            String::from("zpool-create"),
+            KeywordDefinition {
+                options: vec![String::from("ashift")],
+            },
+        );
+        parser.add_keyword(
+            String::from("locale"),
+            KeywordDefinition { options: vec![] },
+        );
         let config_ast = parser.parse_config(config_file).unwrap();
-        println!("{:?}", config_ast);
+        //println!("{:?}", config_ast);
+        assert_eq!(config_ast[0], Keyword{
+            name: "zpool-create".to_string(),
+            options: Some(HashMap::from([("ashift".to_string(), "12".to_string())])),
+            arguments: vec!["mirror".to_string(),
+                            "c1t0d0s0".to_string(),
+                            "c2t0d0s0".to_string(),
+                            "c3t0d0s0".to_string()
+            ]
+        });
+        assert_eq!(config_ast[1], Keyword{
+            name: "locale".to_string(),
+            options: None,
+            arguments: vec!["en_US".to_string()]
+        });
     }
 }

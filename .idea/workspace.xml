@@ -8,27 +8,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Add first implementation of configuration instructions,">
-      <change afterPath="$PROJECT_DIR$/libcfgparser/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libcfgparser/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libshadow/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libshadow/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libshadow/src/shadow.pest" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/command.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/illumos_driver.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/keywords.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/mock_driver.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/passutil/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/passutil/samples/shadow.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/passutil/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/installer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/installer.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Makefile.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libinstall/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/libinstall/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libinstall/src/config.pest" beforeDir="false" afterPath="$PROJECT_DIR$/libcfgparser/src/config.pest" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libinstall/src/config/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/libcfgparser/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libcfgparser/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/libinstall/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libinstall/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libshadow/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libshadow/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/command.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/illumos_driver.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/illumos_driver.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/keywords.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/keywords.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/mock_driver.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/mock_driver.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/passutil/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/passutil/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,26 +69,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "TF_FMT": "false",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/toasty/ws/illumos/installer/libsysconfig/src",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "settings.editor.selected.configurable": "language.rust.cargo.check"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;TF_FMT&quot;: &quot;false&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/toasty/ws/illumos/installer/libsysconfig/src&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust.cargo.check&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/libsysconfig/src" />
@@ -270,7 +261,14 @@
       <option name="project" value="LOCAL" />
       <updated>1650049823508</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Add first implementation of configuration instructions,">
+      <created>1652202453688</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1652202453688</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
