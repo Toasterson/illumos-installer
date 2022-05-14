@@ -2,6 +2,7 @@ mod command;
 mod illumos_driver;
 mod keywords;
 mod mock_driver;
+mod devprop;
 
 extern crate tera;
 
@@ -12,6 +13,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
+pub use keywords::get_supported_keywords;
 
 pub type InstructionsSet = Vec<Instruction>;
 
@@ -105,7 +107,7 @@ pub fn parse_keywords(keywords: Vec<Keyword>) -> Result<InstructionsSet> {
             "timezone" => {
                 set.push(Instruction::SetTimezone(c.arguments[0].clone()));
             }
-            "setup_terminal" => {
+            "terminal" => {
                 let (name_option, label_option, module_option, prompt_option, terminal_type) =
                     if let Some(opts) = c.options {
                         let mut name_option: Option<String> = None;

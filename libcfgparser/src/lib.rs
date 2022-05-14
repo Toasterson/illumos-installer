@@ -6,6 +6,8 @@ use anyhow::{Result};
 use pest::Parser;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 
 enum Config {
     Instruction(String, Option<Vec<(String, String)>>, Vec<String>),
@@ -37,6 +39,11 @@ pub struct SysConfigParser {
 impl SysConfigParser {
     pub fn add_keyword(&mut self, name: String, k: KeywordDefinition) -> Option<KeywordDefinition> {
         self.keywords.insert(name, k)
+    }
+
+    pub fn parse_config_file<P: AsRef<Path>>(&self, file: P) -> Result<Vec<Keyword>> {
+        let content = fs::read_to_string(file)?;
+        self.parse_config(&content)
     }
 
     pub fn parse_config(&self, file: &str) -> Result<Vec<Keyword>> {

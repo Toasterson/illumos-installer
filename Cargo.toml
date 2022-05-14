@@ -5,5 +5,7 @@ members = [
 	"libcfgparser",
 	"libsysconfig",
 	"libinstall",
-	"passutil"
+	"passutil",
+	"sysconfig",
+	"sysconfigen"
 ]

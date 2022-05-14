@@ -9,6 +9,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/libcfgparser/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/libsysconfig/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sysconfig/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sysconfigen/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
