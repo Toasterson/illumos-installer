@@ -3,6 +3,7 @@ mod illumos_driver;
 mod keywords;
 mod mock_driver;
 mod devprop;
+mod svcprop;
 
 extern crate tera;
 
@@ -14,6 +15,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
 pub use keywords::get_supported_keywords;
+pub use svcprop::svcprop;
+pub use command::{svccfg, svccfg_stdin};
 
 pub type InstructionsSet = Vec<Instruction>;
 
@@ -299,36 +302,39 @@ pub enum Driver {
     Illumos,
 }
 
-pub struct Image<'a> {
-    root_path: &'a str,
+pub struct Image {
+    root_path: String,
     driver: Driver,
 }
 
-impl<'a> Image<'a> {
-    pub fn new(root_path: &'a str) -> Self {
+impl Image {
+    pub fn new(root_path: &str) -> Self {
         Image {
-            root_path,
+            root_path: root_path.into(),
             driver: Driver::Illumos,
         }
     }
 
-    pub fn new_with_driver(root_path: &'a str, driver: Driver) -> Self {
-        Image { root_path, driver }
+    pub fn set_driver(&mut self, drv: Driver) {
+        self.driver = drv;
+    }
+
+    pub fn new_with_driver(root_path: &str, driver: Driver) -> Self {
+        Image { root_path: root_path.into(), driver }
+    }
+
+    pub fn apply_instructions(&self, instructions: InstructionsSet) -> Result<()> {
+        for instruction in instructions {
+            self.apply_instruction(instruction)?;
+        }
+
+        Ok(())
     }
 
     pub fn apply_instruction(&self, instruction: Instruction) -> Result<CommandOutput> {
         match self.driver {
-            Driver::Mock => mock_driver::apply_instruction(self.root_path, instruction),
-            Driver::Illumos => illumos_driver::apply_instruction(self.root_path, instruction),
+            Driver::Mock => mock_driver::apply_instruction(&self.root_path, instruction),
+            Driver::Illumos => illumos_driver::apply_instruction(&self.root_path, instruction),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
     }
 }

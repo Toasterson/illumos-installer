@@ -42,7 +42,11 @@ pub fn svccfg(root_path: &str, args: Vec<&str>) -> Result<CommandOutput> {
         ("SVCCFG_CONFIGD_PATH", "/lib/svc/bin/svc.configd")
     ]);
 
-    run_command(root_path, svccfg_env, SVCCFG_BIN, args)
+    if root_path == "/" {
+        run_command(root_path, HashMap::new(), SVCCFG_BIN, args)
+    } else {
+        run_command(root_path, svccfg_env, SVCCFG_BIN, args)
+    }
 }
 
 pub fn svccfg_stdin(root_path: &str, stdin_content: String) -> Result<CommandOutput> {

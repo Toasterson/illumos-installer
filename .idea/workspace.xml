@@ -7,18 +7,14 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Update project files">
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/devprop.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/samples/simple_config.sycfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sysconfig/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sysconfig/src/main.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sysconfigen/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sysconfigen/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/installer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/installer.iml" afterDir="false" />
+    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Add serialization command,">
+      <change afterPath="$PROJECT_DIR$/libsysconfig/src/svcprop.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sysconfig/sysconfig.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libcfgparser/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libcfgparser/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libsysconfig/src/command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/command.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/libsysconfig/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sysconfig/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/sysconfig/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sysconfig/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/sysconfig/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,6 +91,7 @@
       <recent name="$PROJECT_DIR$/libsysconfig/src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/libsysconfig/src" />
       <recent name="$PROJECT_DIR$/libcfgparser/src" />
       <recent name="$PROJECT_DIR$/passutil" />
       <recent name="$PROJECT_DIR$/libinstall/src/config" />
@@ -285,7 +282,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652481811123</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Add serialization command,">
+      <created>1652570675215</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1652570675215</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -310,7 +314,8 @@
     <MESSAGE value="Add first implementation of configuration instructions," />
     <MESSAGE value="Add config implementation," />
     <MESSAGE value="Update project files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update project files" />
+    <MESSAGE value="Add serialization command," />
+    <option name="LAST_COMMIT_MESSAGE" value="Add serialization command," />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
