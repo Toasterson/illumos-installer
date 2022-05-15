@@ -1,0 +1,9 @@
+[tasks.run_install]
+extend = "install_env"
+command = "${INSTALL}"
+args = [
+    "-D",
+    "-m", "755",
+    "${build_dir}/sysconfigen",
+    "${usr_bin}/sysconfigen",
+]

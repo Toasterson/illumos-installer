@@ -1,0 +1,25 @@
+[tasks.run_install]
+dependencies = [
+    "install_bin",
+    "install_smf_manifest"
+]
+
+[tasks.install_bin]
+extend = "install_env"
+command = "${INSTALL}"
+args = [
+    "-D",
+    "-m", "755",
+    "${build_dir}/sysconfig",
+    "${syscfg_usr_lib}/sysconfig",
+]
+
+[tasks.install_smf_manifest]
+extend = "install_env"
+command = "${INSTALL}"
+args = [
+    "-D",
+    "-m", "755",
+    "${CARGO_MAKE_WORKING_DIRECTORY}/sysconfig.xml",
+    "${manifest_dir}/system/sysconfig.xml",
+]

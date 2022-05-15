@@ -7,14 +7,12 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Add serialization command,">
-      <change afterPath="$PROJECT_DIR$/libsysconfig/src/svcprop.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sysconfig/sysconfig.xml" afterDir="false" />
+    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Implement Sysconfig binary to configure zones and systems">
+      <change afterPath="$PROJECT_DIR$/passutil/Makefile.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sysconfig/Makefile.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sysconfigen/Makefile.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libsysconfig/src/command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/command.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libsysconfig/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sysconfig/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/sysconfig/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sysconfig/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/sysconfig/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,7 +75,7 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/toasty/ws/illumos/installer/libsysconfig/src",
+    "last_opened_file_path": "/Users/toasty/ws/illumos/installer/passutil",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -88,6 +86,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/passutil" />
+      <recent name="$PROJECT_DIR$/sysconfig" />
       <recent name="$PROJECT_DIR$/libsysconfig/src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -289,7 +289,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652570675215</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Implement Sysconfig binary to configure zones and systems">
+      <created>1652576914954</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1652576914954</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -315,7 +322,8 @@
     <MESSAGE value="Add config implementation," />
     <MESSAGE value="Update project files" />
     <MESSAGE value="Add serialization command," />
-    <option name="LAST_COMMIT_MESSAGE" value="Add serialization command," />
+    <MESSAGE value="Implement Sysconfig binary to configure zones and systems" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implement Sysconfig binary to configure zones and systems" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
