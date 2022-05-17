@@ -59,6 +59,11 @@ workspace = false
 env = {"INSTALL" = "/usr/local/bin/ginstall"}
 run_task = { name = "run_install", fork = true }
 
+[tasks.install_default]
+workspace = false
+env = {"INSTALL" = "/usr/bin/install"}
+run_task = { name = "run_install", fork = true }
+
 [tasks.install_env]
 [tasks.install_env.env]
 "proto_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/protype"
