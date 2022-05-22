@@ -2,6 +2,7 @@
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["libcfgparser", "libinstall", "libshadow", "libsysconfig"]
 CARGO_BUILD_TYPE = "debug"
+skip_core_tasks = true
 
 [env.development]
 CARGO_BUILD_TYPE = "debug"
@@ -71,3 +72,45 @@ run_task = { name = "run_install", fork = true }
 "usr_bin" = "${proto_dir}/usr/bin"
 "manifest_dir" = "${proto_dir}/lib/svc/manifest"
 "build_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/${CARGO_BUILD_TYPE}"
+
+[tasks.package]
+workspace = false
+dependencies = ["build_all"]
+[tasks.package_sysconfig.env]
+"COMPONENT_NAME" = "sysconfig"
+"COMPONENT_FMRI" = "service/management/${COMPONENT_NAME}"
+"IPS_COMPONENT_VERSION" = "0.5.11"
+"BUILD_VERSION" = "${IPS_COMPONENT_VERSION}-2022.0.1.0"
+"COMPONENT_SUMMARY" = "A System configuration tool for configuring a new system"
+"COMPONENT_CLASSIFICATION" = "org.opensolaris.category.2008:System/Administration and Configuration"
+"COMPONENT_PROJECT_URL" = "https://openindiana.org"
+"CONSOLIDATION" = "userland"
+"COMPONENT_LICENSE_FILE" = "LICENSE"
+"COMPONENT_LICENSE" = "MPL v2.0"
+"REPO_NAME" = "repository"
+
+command = "bash"
+script = '''
+cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
+mkdir manifests
+pkgsend generate protype | pkgfmt > manifests/${COMPONENT_NAME}.p5m.1
+pkgmogrify \
+    -DCOMPONENT_NAME=${COMPONENT_NAME} \
+    -DCOMPONENT_FMRI=${COMPONENT_FMRI} \
+    -DIPS_COMPONENT_VERSION=${IPS_COMPONENT_VERSION} \
+    -DBUILD_VERSION=${BUILD_VERSION} \
+    -DCOMPONENT_SUMMARY=${COMPONENT_SUMMARY} \
+    -DCOMPONENT_CLASSIFICATION=${COMPONENT_CLASSIFICATION} \
+    -DCOMPONENT_PROJECT_URL=${COMPONENT_PROJECT_URL} \
+    -DCONSOLIDATION=${CONSOLIDATION} \
+    -DCOMPONENT_LICENSE_FILE=${COMPONENT_LICENSE_FILE} \
+    -DCOMPONENT_LICENSE=${COMPONENT_LICENSE} \
+    manifests/${COMPONENT_NAME}.p5m.1 ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/pkg/sysconfig.mog | pkgfmt > manifests/${COMPONENT_NAME}.p5m.2
+pkgdepend generate -md protype manifests/${COMPONENT_NAME}.p5m.2 | pkgfmt > manifests/${COMPONENT_NAME}.p5m.3
+pkgdepend resolve -m manifests/${COMPONENT_NAME}.p5m.3
+pkglint manifests/${COMPONENT_NAME}.p5m.3
+pkgrepo create ${REPO_NAME}
+pkgrepo -s ${REPO_NAME} set publisher/prefix=toasterson
+pkgsend -s ${REPO_NAME} publish -d protype manifests/${COMPONENT_NAME}.p5m.3
+pkgrecv -s ${REPO_NAME} -a -d ${COMPONENT_NAME}.p5p ${COMPONENT_FMRI}
+'''
