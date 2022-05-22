@@ -98,7 +98,7 @@ pkgrepo -s ${REPO_NAME} set publisher/prefix=toasterson
 pkgsend -s ${REPO_NAME} publish -d protype manifests/${COMPONENT_NAME}.p5m.3
 pkgrecv -s ${REPO_NAME} -a -d ${COMPONENT_NAME}.p5p ${COMPONENT_FMRI}
 '''
-[tasks.package_sysconfig.env]
+[tasks.package_ips.env]
 "COMPONENT_NAME" = "sysconfig"
 "COMPONENT_FMRI" = "service/management/${COMPONENT_NAME}"
 "IPS_COMPONENT_VERSION" = "0.5.11"
