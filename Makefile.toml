@@ -56,7 +56,7 @@ run_task = { name = "run_install", fork = true }
 
 [tasks.install_default]
 workspace = false
-env = {"INSTALL" = "/usr/local/bin/ginstall"} # For some reason cargo make does not detect the illumos platform properly thus make it the detault
+env = {"INSTALL" = "/usr/bin/ginstall"} # For some reason cargo make does not detect the illumos platform properly thus make it the detault
 run_task = { name = "run_install", fork = true }
 
 [tasks.install_env]
