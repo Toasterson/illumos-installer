@@ -95,7 +95,7 @@ pkgdepend resolve -m manifests/${COMPONENT_NAME}.p5m.3
 pkglint manifests/${COMPONENT_NAME}.p5m.3.res
 pkgrepo create ${REPO_NAME}
 pkgrepo -s ${REPO_NAME} set publisher/prefix=toasterson
-pkgsend -s ${REPO_NAME} publish -d protype manifests/${COMPONENT_NAME}.p5m.3.res
+pkgsend -s ${REPO_NAME} publish -d protype -d ${CARGO_MAKE_WORKING_DIRECTORY} manifests/${COMPONENT_NAME}.p5m.3.res
 pkgrecv -s ${REPO_NAME} -a -d ${COMPONENT_NAME}.p5p ${COMPONENT_FMRI}
 '''
 [tasks.package_ips.env]
