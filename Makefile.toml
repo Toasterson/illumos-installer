@@ -85,6 +85,7 @@ dependencies = ["install"]
 
 command = "bash"
 script = '''
+set -ev
 cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
 mkdir manifests
 pkgsend generate protype | pkgfmt > manifests/${COMPONENT_NAME}.p5m.1
