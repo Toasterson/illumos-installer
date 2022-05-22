@@ -75,6 +75,7 @@ script_extension = "bash"
 script_runner_args = ["-ev"]
 script = '''
 cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
+rm -rf manifests ${REPO_NAME}
 mkdir manifests
 pkgsend generate protype | pkgfmt > manifests/${COMPONENT_NAME}.p5m.1
 pkgmogrify \
