@@ -2,6 +2,11 @@
 name = "sysconfig"
 version = "0.1.0"
 edition = "2021"
+description = "System configuration service"
+license = "MPL-2.0"
+homepage = "https://github.com/Toasterson/illumos-installer"
+repository = "https://github.com/Toasterson/illumos-installer"
+documentation = "https://github.com/Toasterson/illumos-installer"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
