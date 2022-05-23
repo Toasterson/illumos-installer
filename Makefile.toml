@@ -31,7 +31,7 @@ args = ["build"]
 
 [tasks.build_release]
 command = "cargo"
-args = ["build", "--release"]
+args = ["build", "--release", "--target", "x86_64-unknown-illumos"]
 
 [tasks.test]
 command = "cargo"
@@ -46,12 +46,18 @@ workspace = false
 dependencies = ["build_all"]
 run_task = [
     { name = "install_macos", condition = { platforms = ["mac"] } },
+    { name = "install_linux", condition = { platforms = ["linux"] } },
     { name = "install_default" },
 ]
 
 [tasks.install_macos]
 workspace = false
 env = {"INSTALL" = "/usr/local/bin/ginstall"}
+run_task = { name = "run_install", fork = true }
+
+[tasks.install_linux]
+workspace = false
+env = {"INSTALL" = "/usr/bin/install"}
 run_task = { name = "run_install", fork = true }
 
 [tasks.install_default]
@@ -67,12 +73,23 @@ run_task = { name = "run_install", fork = true }
 "manifest_dir" = "${proto_dir}/lib/svc/manifest"
 "build_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/${CARGO_BUILD_TYPE}"
 
+[tasks.package_tarball]
+workspace = false
+dependencies = ["install"]
+script_runner = "bash"
+script_extension = "bash"
+script_runner_args = ["-e"]
+script = '''
+cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
+tar -czf illumos-installer.tar.gz -C protype *
+'''
+
 [tasks.package_ips]
 workspace = false
 dependencies = ["install"]
 script_runner = "bash"
 script_extension = "bash"
-script_runner_args = ["-ev"]
+script_runner_args = ["-e"]
 script = '''
 cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
 rm -rf manifests ${REPO_NAME}
