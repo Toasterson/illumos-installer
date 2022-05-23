@@ -5,6 +5,9 @@
         <dependency name='fs' grouping='require_all' restart_on='none' type='service'>
             <service_fmri value='svc:/system/filesystem/minimal:default'/>
         </dependency>
+        <dependency name='sysding' grouping='exclude_all' restart_on='none' type='service'>
+            <service_fmri value='svc:/system/sysding:system'/>
+        </dependency>
         <dependency name='identity' grouping='require_all' restart_on='none' type='service'>
             <service_fmri value='svc:/system/identity:node'/>
             <service_fmri value='svc:/system/identity:domain'/>
@@ -18,9 +21,6 @@
             </dependency>
             <dependency name='filesystem_local' grouping='require_all' restart_on='none' type='service'>
                 <service_fmri value='svc:/system/filesystem/local:default'/>
-            </dependency>
-            <dependency name='rpcbind' grouping='optional_all' restart_on='none' type='service'>
-                <service_fmri value='svc:/network/rpc/bind:default'/>
             </dependency>
             <dependent name='sysidtoolsystem_sysconfig' restart_on='none' grouping='optional_all'>
                 <service_fmri value='svc:/milestone/sysconfig'/>
