@@ -28,7 +28,6 @@ jobs:
       - uses: davidB/rust-cargo-make@v1
 
       - name: make format-flow
-        uses: actions/checkout@v1
         run: cargo make format-flow
 
   test:
