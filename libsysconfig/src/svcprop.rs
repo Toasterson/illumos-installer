@@ -13,7 +13,7 @@ pub fn svcprop(property: &str, smf_fmri: &str) -> Result<Option<String>> {
         if str.is_empty() {
             Ok(None)
         } else {
-            Ok(Some(str))
+            Ok(Some(str.trim_end().to_string()))
         }
     } else {
         Err(anyhow!("svcprop command execution failed: {}", String::from_utf8(output.stderr)?))

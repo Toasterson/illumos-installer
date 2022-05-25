@@ -11,7 +11,7 @@ pub fn get_key(key: &str) -> Result<String> {
 
     let output = cmd_args.output()?;
     if output.status.success() {
-        Ok(String::from_utf8(output.stdout)?)
+        Ok(String::from_utf8(output.stdout)?.trim_end().to_string())
     } else {
         Err(anyhow!(String::from_utf8(output.stderr)?))
     }
