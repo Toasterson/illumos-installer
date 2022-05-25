@@ -67,7 +67,7 @@ run_task = { name = "run_install", fork = true }
 
 [tasks.install_env]
 [tasks.install_env.env]
-"proto_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/protype"
+"proto_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/prototype"
 "syscfg_usr_lib" = "${proto_dir}/usr/lib/sysconfig"
 "usr_bin" = "${proto_dir}/usr/bin"
 "manifest_dir" = "${proto_dir}/lib/svc/manifest"
@@ -80,8 +80,8 @@ script_runner = "bash"
 script_extension = "bash"
 script_runner_args = ["-e"]
 script = '''
-cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}
-tar -czf illumos-installer.tar.gz -C protype *
+cd ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/prototype
+tar -czf ../illumos-installer.tar.gz *
 '''
 
 [tasks.package_ips]
