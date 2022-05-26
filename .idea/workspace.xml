@@ -7,9 +7,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Add install target to install into prototype directory">
+    <list default="true" id="00fbfdb5-af90-4deb-9b75-51eb4200da9a" name="Changes" comment="Ignore whitespace when consuming cli output of subcommand">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libsysconfig/src/svcprop.rs" beforeDir="false" afterPath="$PROJECT_DIR$/libsysconfig/src/svcprop.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -304,7 +304,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652585286837</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Ignore whitespace when consuming cli output of subcommand">
+      <created>1653515503098</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1653515503098</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -332,7 +339,8 @@
     <MESSAGE value="Add serialization command," />
     <MESSAGE value="Implement Sysconfig binary to configure zones and systems" />
     <MESSAGE value="Add install target to install into prototype directory" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add install target to install into prototype directory" />
+    <MESSAGE value="Ignore whitespace when consuming cli output of subcommand" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ignore whitespace when consuming cli output of subcommand" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
