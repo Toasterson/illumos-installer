@@ -71,7 +71,7 @@ run_task = { name = "run_install", fork = true }
 "syscfg_usr_lib" = "${proto_dir}/usr/lib/sysconfig"
 "usr_bin" = "${proto_dir}/usr/bin"
 "manifest_dir" = "${proto_dir}/lib/svc/manifest"
-"build_dir" = "${CARGO_MAKE_CRATE_CUSTOM_TRIPLE_TARGET_DIRECTORY}/${CARGO_BUILD_TYPE}"
+"build_dir" = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/${CARGO_MAKE_RUST_TARGET_TRIPLE}/${CARGO_BUILD_TYPE}"
 
 [tasks.package_tarball]
 workspace = false
