@@ -1,7 +1,7 @@
 use std::fs;
 use std::fs::File;
 use std::path::PathBuf;
-use anyhow::{anyhow, Result};
+use anyhow::{Result};
 use clap::{Parser};
 use std::process::Command as PCommand;
 use libsysconfig::InstructionsSet;
@@ -13,7 +13,7 @@ static SMF_FINISHED_PROPERTY: &str = "config/finished";
 #[clap(author, version, about, long_about = None)]
 struct Cli {
     // File that holds the system config to apply
-    #[clap(default_value="/etc/sysconfig.json")]
+    #[clap(long, default_value="/etc/sysconfig.json")]
     file: PathBuf,
 
     // SMF FMRI is an environment variable that we need. it is set by SMF by default
@@ -82,14 +82,17 @@ fn main() -> Result<()> {
         if let Some(alt_root) = cli.alt_root {
             libsysconfig::Image::new(&alt_root)
         } else {
-            return Err(anyhow!("not running under SMF must supply -R flag"))
+            // If we are not running under illumos SMF use a mocking driver
+            libsysconfig::Image::new_with_driver("/", libsysconfig::Driver::Mock)
         }
     } else {
         libsysconfig::Image::new("/")
     };
 
     // Apply configuration
-    img.apply_instructions(instructions)?;
+    for instruction in instructions {
+        dbg!(img.apply_instruction(instruction)?);
+    }
 
     // If we run under SMF setup run blocker so we don't run a second time
     if let Some(smf_fmri) = cli.smf_fmri.clone() {

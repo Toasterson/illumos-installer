@@ -20,7 +20,7 @@ pub use command::{svccfg, svccfg_stdin};
 
 pub type InstructionsSet = Vec<Instruction>;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RootPasswordType {
     Clear(String),
     Hash(String),
@@ -39,7 +39,7 @@ pub enum NetworkConfig {
 //TODO VNIC Setup
 //TODO IPMP Setup
 //TODO Etherstub Setup (mostly because VXLAN)
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Instruction {
     CreateDataset {
         name: String,

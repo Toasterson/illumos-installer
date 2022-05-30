@@ -257,7 +257,7 @@ fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOut
     } else {
         String::from(locale)
     };
-
+    // TODO: Fix multiple lang lines in File when run multiple times
     let p = Path::new(root_path);
 
     let mut src = File::open(p.join(DEFAULT_INIT_FILE))?;
@@ -266,7 +266,7 @@ fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOut
     drop(src);
 
     let lang_regex = Regex::new(r"^LANG=")?;
-    let lang_str = format!("LANG={}", locale);
+    let lang_str = format!("LANG={}\n", locale);
     let new_content = if lang_regex.is_match(&content) {
         lang_regex.replace_all(&content, lang_str).into()
     } else {
