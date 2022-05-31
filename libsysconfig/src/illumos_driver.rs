@@ -9,6 +9,7 @@ use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
+use log::{debug, info, warn};
 use tera::{Context, Tera};
 
 static ZFS_COMMAND: &str = "/usr/sbin/zfs";
@@ -107,6 +108,7 @@ fn setup_interface(
     let mut addr_conf = if let Some(ipv4_conf) = ipv4 {
         match ipv4_conf {
             NetworkConfig::Static(v4_static_1) => {
+                info!(target: "libsysconfig", "Device {} is being setup with IPv4 Address {}", &device, &v4_static_1);
                 v4_static = v4_static_1;
                 if primary {
                     vec!["-T", "static", "-1", "-a", &v4_static]
@@ -115,6 +117,7 @@ fn setup_interface(
                 }
             }
             _ => {
+                info!(target: "libsysconfig", "Device {} is being set to DHCP", &device);
                 vec!["-T", "dhcp"]
             }
         }
@@ -122,9 +125,11 @@ fn setup_interface(
         let dev_name_addrconf = device.clone() + "/v6_local";
         match ipv6_conf {
             NetworkConfig::DHCP => {
+                info!(target: "libsysconfig", "Device {} is being set to DHCPv6", &device);
                 vec!["-T", "dhcp"]
             }
             NetworkConfig::DHCPStateful => {
+                info!(target: "libsysconfig", "Device {} is being set to DHCPv6 Stateful", &device);
                 let ipadm_addrconf_args = vec![
                     "-R",
                     root_path,
@@ -134,6 +139,7 @@ fn setup_interface(
                 vec!["-T", "dhcp"]
             }
             NetworkConfig::DHCPStateless => {
+                info!(target: "libsysconfig", "Device {} is being set to DHCPv6 Stateless", &device);
                 let ipadm_addrconf_args = vec![
                     "-R",
                     root_path,
@@ -144,12 +150,14 @@ fn setup_interface(
             }
             NetworkConfig::Static(v6_addr_1) => {
                 v6_static = v6_addr_1;
+                info!(target: "libsysconfig", "Device {} is being set to IPv6 Static Address {}", &device, &v6_static);
                 let ipadm_addrconf_args = vec![
                     "-R",
                     root_path,
                     "-T", "addrconf", "-p", "stateless=yes",
                     &dev_name_addrconf];
                 run_command(root_path, HashMap::new(), IPADM_BIN, ipadm_addrconf_args)?;
+                info!(target: "libsysconfig", "Device {} will have addrconf configured", &device);
                 vec!["-T", "static", "-a", &v6_static]
             }
         }
@@ -183,17 +191,19 @@ fn add_route(root_path: &str, route_match: String, gateway: String) -> Result<Co
         "-p",
         &route_match,
         &gateway];
-
+    info!(target: "libsysconfig", "Adding route {}->{} to system mounted at {}", &route_match, &gateway, root_path);
     run_command(root_path, HashMap::new(), ROUTE_BIN, route_args)
 }
 
 fn set_hostname(root_path: &str, hostname: &str) -> Result<CommandOutput> {
     let r_path = Path::new(root_path);
 
+    info!(target: "libsysconfig", "Setting hostname to {}", hostname);
     // /etc/nodename
     let nodename = hostname.to_string() + "\n";
     let mut nodename_dest = File::create(r_path.join(NODENAME_FILE))?;
     nodename_dest.write(nodename.as_bytes())?;
+    debug!(target: "libsysconfig", "Updated {}/etc/nodename", root_path);
 
     // /etc/inet/hosts
     let mut context = Context::new();
@@ -201,6 +211,7 @@ fn set_hostname(root_path: &str, hostname: &str) -> Result<CommandOutput> {
     let inet_hosts_content = Tera::one_off(INET_HOSTS_TEMPLATE, &context, true)?;
     let mut inet_hosts_dest = File::create(r_path.join(INET_HOSTS_FILE))?;
     inet_hosts_dest.write(inet_hosts_content.as_bytes())?;
+    debug!(target: "libsysconfig", "Updated {}/etc/inet/hosts", root_path);
 
     Ok(CommandOutput {
         command: "internal".to_string(),
@@ -213,7 +224,7 @@ fn set_root_password_hash(root_path: &str, hash: &str) -> Result<CommandOutput> 
     let p = Path::new(root_path);
     let shadow_path = p.join(SHADOW_FILE);
     let contents = fs::read_to_string(&shadow_path)?;
-
+    info!(target: "libsysconfig", "Setting root password to hash given");
     let mut shadow = parse_shadow_file(&contents)?;
     if let Some(mut root_user) = shadow.get_entry("root") {
         root_user.set_password_hash(&hash);
@@ -221,6 +232,8 @@ fn set_root_password_hash(root_path: &str, hash: &str) -> Result<CommandOutput> 
 
         let new_file = shadow.serialize();
         fs::write(&shadow_path, &new_file)?;
+    } else {
+        warn!(target: "libsysconfig", "No root user present in shadow file skipping setting the password")
     }
 
     Ok(CommandOutput {
@@ -238,10 +251,15 @@ fn create_dataset(
     let mut zfs_args = vec!["create"];
     let mut prop_args: Vec<String> = vec![];
     if let Some(props) = properties {
+        info!(target: "libsysconfig", "Creating Dataset {} with properties={}", name,
+        &props.iter().map(|(k,v)| format!("{}={}",k,v)).collect::<Vec<String>>().join(";"));
+
         for (key, value) in props {
             let pair = format!("{}={}", key, value);
             prop_args.append(&mut vec!["-o".into(), pair]);
         }
+    } else {
+        info!(target: "libsysconfig", "Creating Dataset {}", name);
     }
     let mut p = prop_args.iter_mut().map(|p| p.as_str()).collect::<Vec<&str>>();
     zfs_args.append(&mut p);
@@ -259,19 +277,20 @@ fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOut
     };
     // TODO: Fix multiple lang lines in File when run multiple times
     let p = Path::new(root_path);
-
+    info!(target: "libsysconfig", "Setting LANG={}", locale.clone());
     let mut src = File::open(p.join(DEFAULT_INIT_FILE))?;
     let mut content = String::new();
     src.read_to_string(&mut content)?;
     drop(src);
 
-    let lang_regex = Regex::new(r"^LANG=")?;
+    let lang_regex = Regex::new(r"^LANG=.*")?;
     let lang_str = format!("LANG={}\n", locale);
     let new_content = if lang_regex.is_match(&content) {
         lang_regex.replace_all(&content, lang_str).into()
     } else {
-        content + "\n" + &lang_str
+        content + &lang_str
     };
+    debug!(target: "libsysconfig", "New content is \n {}", &new_content);
 
     let mut dest = File::create(p.join(DEFAULT_INIT_FILE))?;
     dest.write(new_content.as_bytes())?;
@@ -295,14 +314,17 @@ fn setup_dns(
         if iter > 0 {
             resolv_conf += format!("\n").as_str();
         }
+        info!(target: "libsysconfig", "Adding DNS server {}", &ns);
         resolv_conf += format!("nameserver {}", ns).as_str();
     }
 
     if let Some(dom) = domain {
+        info!(target: "libsysconfig", "Setting DNS domain to {}", &dom);
         resolv_conf += format!("\ndomain {}", dom).as_str();
     }
 
     if let Some(se) = search {
+        info!(target: "libsysconfig", "Setting DNS search to {}", &se);
         resolv_conf += format!("\nsearch {}", se).as_str();
     }
 
@@ -320,6 +342,7 @@ fn setup_dns(
 }
 
 fn setup_keyboard(root_path: &str, keymap: &str) -> Result<CommandOutput> {
+    info!(target: "libsysconfig", "Setting Keyboard layout to {}", keymap);
     let keymap_layout_arg = format!("keymap/layout={}", keymap);
     let keyboard_command = vec![
         "-s",
@@ -334,6 +357,7 @@ fn setup_keyboard(root_path: &str, keymap: &str) -> Result<CommandOutput> {
 fn setup_timezone(root_path: &str, timezone: &str) -> Result<CommandOutput> {
     let p = Path::new(root_path);
 
+    info!(target: "libsysconfig", "Setting timezone to {}", timezone);
     let mut src = File::open(p.join(DEFAULT_INIT_FILE))?;
     let mut content = String::new();
     src.read_to_string(&mut content)?;
@@ -366,6 +390,7 @@ fn setup_terminal(
     terminal_type: &str,
 ) -> Result<CommandOutput> {
     if name == None && label == None && modules == None && prompt == None {
+        info!(target: "libsysconfig", "Setting terminal type to {}", terminal_type);
         let ttymon_arg = format!("ttymon/terminal_type={}", terminal_type);
         let terminal_command = vec![
             "-s",
@@ -373,9 +398,11 @@ fn setup_terminal(
             "setprop",
             &ttymon_arg,
         ];
-
         svccfg(root_path, terminal_command)
     } else {
+        info!(target: "libsysconfig", "Setting terminal up with configuration name={:?} label={:?} modules={:?} prompt={:?} type={}",
+        name, label, modules, prompt, terminal_type);
+
         let mut stdin = String::new();
         if let Some(term_name) = name.clone() {
             stdin += "select svc:/system/console-login\n";
