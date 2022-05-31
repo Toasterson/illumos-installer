@@ -407,7 +407,7 @@ fn setup_terminal(
         let ttymon_arg = format!("ttymon/terminal_type={}", terminal_type);
         let terminal_command = vec![
             "-s",
-            "svc:/system/console-login:default",
+            "svc:/system/console-login",
             "setprop",
             &ttymon_arg,
         ];
@@ -422,7 +422,7 @@ fn setup_terminal(
             stdin += &format!("add {}", term_name);
             stdin += &format!("select svc:/system/console-login:{}", term_name);
         } else {
-            stdin += "select svc:/system/console-login:default";
+            stdin += "select svc:/system/console-login";
         }
         stdin += "addpg ttymon application";
         if let Some(term_name) = name {
