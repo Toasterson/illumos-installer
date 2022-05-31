@@ -283,14 +283,27 @@ fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOut
     src.read_to_string(&mut content)?;
     drop(src);
 
-    let lang_regex = Regex::new(r"^LANG=.*")?;
-    let lang_str = format!("LANG={}\n", locale);
-    let new_content = if lang_regex.is_match(&content) {
-        lang_regex.replace_all(&content, lang_str).into()
-    } else {
-        content + &lang_str
-    };
-    debug!(target: "libsysconfig", "New content is \n {}", &new_content);
+    let mut new_content = String::new();
+    for line in content.lines() {
+        // Only do something if the line starts with LANG=
+        if line.starts_with("LANG") {
+            // Return Success if the locale is already set correctly
+            if line == "LANG=".to_string() + &locale {
+                debug!(target: "libsysconfig", "Locale already correct returning");
+                return Ok(CommandOutput {
+                    command: "internal".to_string(),
+                    root_path: root_path.clone().to_string(),
+                    output: "".to_string(),
+                });
+            } else {
+                new_content += &format!("LANG={}", &locale);
+            }
+        } else {
+            new_content += line;
+        }
+        new_content += "\n";
+    }
+    debug!(target: "libsysconfig", "New content of {}/{} is \n {}", root_path, DEFAULT_INIT_FILE, &new_content);
 
     let mut dest = File::create(p.join(DEFAULT_INIT_FILE))?;
     dest.write(new_content.as_bytes())?;
