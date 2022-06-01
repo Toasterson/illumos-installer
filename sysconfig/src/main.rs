@@ -9,6 +9,7 @@ use slog::{Logger, Drain};
 use slog_async::Async;
 use slog_scope::{GlobalLoggerGuard, set_global_logger};
 use slog_term::{CompactFormat, TermDecorator};
+use slog_syslog::Facility;
 use libsysconfig::InstructionsSet;
 
 static SMF_CONFIG_FILE_PROPERTY: &str = "config/file";
@@ -30,25 +31,37 @@ struct Cli {
     alt_root: Option<String>,
 }
 
-pub fn init_slog_logging()  -> GlobalLoggerGuard
+pub fn init_slog_logging(use_syslog: bool)  -> Result<GlobalLoggerGuard>
 {
-    let decorator = TermDecorator::new().stdout().build();
-    let drain     = CompactFormat::new(decorator).build().fuse();
-    let drain     = Async::new(drain).build().fuse();
-    let logger    = Logger::root(drain, slog::slog_o!());
+    if use_syslog {
+        let drain = slog_syslog::unix_3164(Facility::LOG_DAEMON)?.fuse();
+        let logger    = Logger::root(drain, slog::slog_o!());
 
-    let scope_guard = set_global_logger(logger);
-    let _log_guard = slog_stdlog::init().unwrap();
+        let scope_guard = set_global_logger(logger);
+        let _log_guard = slog_stdlog::init()?;
 
-    scope_guard
+        Ok(scope_guard)
+    } else {
+        let decorator = TermDecorator::new().stdout().build();
+        let drain     = CompactFormat::new(decorator).build().fuse();
+        let drain     = Async::new(drain).build().fuse();
+        let logger    = Logger::root(drain, slog::slog_o!());
+
+        let scope_guard = set_global_logger(logger);
+        let _log_guard = slog_stdlog::init()?;
+
+        Ok(scope_guard)
+    }
 }
 
 fn main() -> Result<()> {
-    let logger_guard = init_slog_logging();
+    let logger_guard: GlobalLoggerGuard;
 
     let cli: Cli = Cli::parse();
 
     if let Some(smf_fmri) = cli.smf_fmri.clone() {
+        logger_guard = init_slog_logging(true)?;
+
         // Check if we have run before and exit if we did
         let cfg_finished_prop = libsysconfig::svcprop(SMF_FINISHED_PROPERTY, &smf_fmri)?;
         if let Some(finished) = cfg_finished_prop {
@@ -57,6 +70,8 @@ fn main() -> Result<()> {
                 return Ok(())
             }
         }
+    } else {
+        logger_guard = init_slog_logging(false)?;
     }
 
     let cfg_file_prop = if let Some(smf_fmri) = cli.smf_fmri.clone() {
