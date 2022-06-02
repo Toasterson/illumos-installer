@@ -1,0 +1,3 @@
+[submodule "illumos"]
+	path = illumos
+	url = git@github.com:illumos/rust-illumos.git

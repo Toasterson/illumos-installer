@@ -1,4 +1,3 @@
-use crate::command::{run_command, svccfg, svccfg_stdin};
 use crate::InstructionError;
 use crate::{CommandOutput, Instruction, NetworkConfig, RootPasswordType};
 use anyhow::{anyhow, Result};
@@ -11,6 +10,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 use log::{debug, info, warn};
 use tera::{Context, Tera};
+use illumos::{svccfg, run, run_capture_stdout};
 
 static ZFS_COMMAND: &str = "/usr/sbin/zfs";
 static CP_COMMAND: &str = "/usr/bin/cp";
@@ -50,6 +50,7 @@ static INET_HOSTS_TEMPLATE: &str = r#"# CDDL HEADER START
 127.0.0.1 {{hostname}} {{hostname}}.local localhost loghost
 "#;
 
+// TODO: Switch root_path to Optional<&str>
 pub fn apply_instruction(root_path: &str, instruction: Instruction) -> Result<CommandOutput> {
     match instruction {
         Instruction::CreateDataset { name, properties } => {
@@ -131,32 +132,35 @@ fn setup_interface(
             NetworkConfig::DHCPStateful => {
                 info!(target: "libsysconfig", "Device {} is being set to DHCPv6 Stateful", &device);
                 let ipadm_addrconf_args = vec![
+                    IPADM_BIN,
                     "-R",
                     root_path,
                     "-T", "addrconf", "-p", "stateful=yes",
                     &dev_name_addrconf];
-                run_command(root_path, HashMap::new(), IPADM_BIN, ipadm_addrconf_args)?;
+                run(&ipadm_addrconf_args, None)?;
                 vec!["-T", "dhcp"]
             }
             NetworkConfig::DHCPStateless => {
                 info!(target: "libsysconfig", "Device {} is being set to DHCPv6 Stateless", &device);
                 let ipadm_addrconf_args = vec![
+                    IPADM_BIN,
                     "-R",
                     root_path,
                     "-T", "addrconf", "-p", "stateless=yes",
                     &dev_name_addrconf];
-                run_command(root_path, HashMap::new(), IPADM_BIN, ipadm_addrconf_args)?;
+                run(&ipadm_addrconf_args, None)?;
                 vec!["-T", "dhcp"]
             }
             NetworkConfig::Static(v6_addr_1) => {
                 v6_static = v6_addr_1;
                 info!(target: "libsysconfig", "Device {} is being set to IPv6 Static Address {}", &device, &v6_static);
                 let ipadm_addrconf_args = vec![
+                    IPADM_BIN,
                     "-R",
                     root_path,
                     "-T", "addrconf", "-p", "stateless=yes",
                     &dev_name_addrconf];
-                run_command(root_path, HashMap::new(), IPADM_BIN, ipadm_addrconf_args)?;
+                run(&ipadm_addrconf_args, None)?;
                 info!(target: "libsysconfig", "Device {} will have addrconf configured", &device);
                 vec!["-T", "static", "-a", &v6_static]
             }
@@ -176,23 +180,33 @@ fn setup_interface(
     };
 
     let mut ipadm_args = vec![
+        IPADM_BIN,
         "-R",
         root_path];
     ipadm_args.append(&mut addr_conf);
     ipadm_args.push(&dev_name);
 
-    run_command(root_path, HashMap::new(), IPADM_BIN, ipadm_args)
+    Ok(CommandOutput{
+        command: ipadm_args.join(" "),
+        root_path: root_path.to_string(),
+        output: run_capture_stdout(&ipadm_args, None)?
+    })
 }
 
 fn add_route(root_path: &str, route_match: String, gateway: String) -> Result<CommandOutput> {
     let route_args = vec![
+        ROUTE_BIN,
         "-R",
         root_path,
         "-p",
         &route_match,
         &gateway];
     info!(target: "libsysconfig", "Adding route {}->{} to system mounted at {}", &route_match, &gateway, root_path);
-    run_command(root_path, HashMap::new(), ROUTE_BIN, route_args)
+    Ok(CommandOutput{
+        command: ipadm_args.join(" "),
+        root_path: root_path.to_string(),
+        output: run_capture_stdout(&route_args, None)?
+    })
 }
 
 fn set_hostname(root_path: &str, hostname: &str) -> Result<CommandOutput> {
@@ -216,7 +230,7 @@ fn set_hostname(root_path: &str, hostname: &str) -> Result<CommandOutput> {
     Ok(CommandOutput {
         command: "internal".to_string(),
         root_path: root_path.clone().to_string(),
-        output: "".to_string(),
+        output: "success".to_string(),
     })
 }
 
@@ -239,7 +253,7 @@ fn set_root_password_hash(root_path: &str, hash: &str) -> Result<CommandOutput> 
     Ok(CommandOutput {
         command: "libshadow".to_string(),
         root_path: root_path.clone().to_string(),
-        output: "".to_string(),
+        output: "success".to_string(),
     })
 }
 
@@ -248,7 +262,7 @@ fn create_dataset(
     name: &str,
     properties: Option<HashMap<String, String>>,
 ) -> Result<CommandOutput> {
-    let mut zfs_args = vec!["create"];
+    let mut zfs_args = vec![ZFS_COMMAND, "create"];
     let mut prop_args: Vec<String> = vec![];
     if let Some(props) = properties {
         info!(target: "libsysconfig", "Creating Dataset {} with properties={}", name,
@@ -264,7 +278,11 @@ fn create_dataset(
     let mut p = prop_args.iter_mut().map(|p| p.as_str()).collect::<Vec<&str>>();
     zfs_args.append(&mut p);
     zfs_args.push(name);
-    run_command(root_path, HashMap::new(), ZFS_COMMAND, zfs_args)
+    Ok(CommandOutput{
+        command: zfs_args.join(" ").to_string(),
+        root_path: root_path.to_string(),
+        output: run_capture_stdout(&zfs_args, None)?
+    })
 }
 
 fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOutput> {
@@ -311,7 +329,7 @@ fn set_locale(root_path: &str, locale: &str, unicode: bool) -> Result<CommandOut
     Ok(CommandOutput {
         command: "internal".to_string(),
         root_path: root_path.clone().to_string(),
-        output: "".to_string(),
+        output: "success".to_string(),
     })
 }
 
@@ -358,13 +376,24 @@ fn setup_keyboard(root_path: &str, keymap: &str) -> Result<CommandOutput> {
     info!(target: "libsysconfig", "Setting Keyboard layout to {}", keymap);
     let keymap_layout_arg = format!("keymap/layout={}", keymap);
     let keyboard_command = vec![
-        "-s",
-        "svc:/system/keymap:default",
+        "select svc:/system/keymap:default",
         "setprop",
         &keymap_layout_arg,
     ];
 
-    svccfg(root_path, keyboard_command)
+    let alt_root = if root_path == "/" {
+        None
+    } else {
+        Some(root_path)
+    };
+
+    svccfg(&keyboard_command, alt_root)?;
+
+    Ok(CommandOutput{
+        command: keyboard_command.join(" "),
+        root_path: root_path.to_string(),
+        output: String::new()
+    })
 }
 
 fn setup_timezone(root_path: &str, timezone: &str) -> Result<CommandOutput> {
@@ -376,13 +405,27 @@ fn setup_timezone(root_path: &str, timezone: &str) -> Result<CommandOutput> {
     src.read_to_string(&mut content)?;
     drop(src);
 
-    let tz_regex = Regex::new(r"^TZ=")?;
-    let tz_str = format!("TZ={}", timezone);
-    let new_content = if tz_regex.is_match(&content) {
-        tz_regex.replace_all(&content, tz_str).into()
-    } else {
-        content + "\n" + &tz_str
-    };
+    let mut new_content = String::new();
+    for line in content.lines() {
+        // Only do something if the line starts with LANG=
+        if line.starts_with("TZ") {
+            // Return Success if the locale is already set correctly
+            if line == "TZ=".to_string() + &timezone {
+                debug!(target: "libsysconfig", "Timezone already correct returning");
+                return Ok(CommandOutput {
+                    command: "internal".to_string(),
+                    root_path: root_path.clone().to_string(),
+                    output: "".to_string(),
+                });
+            } else {
+                new_content += &format!("TZ={}", &timezone);
+            }
+        } else {
+            new_content += line;
+        }
+        new_content += "\n";
+    }
+    debug!(target: "libsysconfig", "New content of {}/{} is \n {}", root_path, DEFAULT_INIT_FILE, &new_content);
 
     let mut dest = File::create(p.join(DEFAULT_INIT_FILE))?;
     dest.write(new_content.as_bytes())?;
@@ -390,7 +433,7 @@ fn setup_timezone(root_path: &str, timezone: &str) -> Result<CommandOutput> {
     Ok(CommandOutput {
         command: "internal".to_string(),
         root_path: root_path.clone().to_string(),
-        output: "".to_string(),
+        output: String::new(),
     })
 }
 
@@ -402,55 +445,71 @@ fn setup_terminal(
     prompt: Option<String>,
     terminal_type: &str,
 ) -> Result<CommandOutput> {
+    let alt_root = if root_path == "/" {
+        None
+    } else {
+        Some(root_path)
+    };
+
     if name == None && label == None && modules == None && prompt == None {
         info!(target: "libsysconfig", "Setting terminal type to {}", terminal_type);
-        let ttymon_arg = format!("ttymon/terminal_type={}", terminal_type);
-        let terminal_command = vec![
-            "-s",
-            "svc:/system/console-login",
-            "setprop",
+        let ttymon_arg = format!("setprop ttymon/terminal_type = astring: {}", terminal_type);
+        let terminal_args = vec![
+            "select svc:/system/console-login",
             &ttymon_arg,
         ];
-        svccfg(root_path, terminal_command)
+        svccfg(&terminal_args, alt_root)?;
+
+        Ok(CommandOutput{
+            command: terminal_args.join(";"),
+            root_path: root_path.to_string(),
+            output: String::new()
+        })
     } else {
         info!(target: "libsysconfig", "Setting terminal up with configuration name={:?} label={:?} modules={:?} prompt={:?} type={}",
         name, label, modules, prompt, terminal_type);
 
-        let mut stdin = String::new();
+        let mut terminal_args: Vec<&str> = vec![];
         if let Some(term_name) = name.clone() {
-            stdin += "select svc:/system/console-login\n";
-            stdin += &format!("add {}", term_name);
-            stdin += &format!("select svc:/system/console-login:{}", term_name);
+            terminal_args.push("select svc:/system/console-login");
+            terminal_args.push(&format!("add {}", term_name));
+            terminal_args.push(&format!("select svc:/system/console-login:{}", term_name));
         } else {
-            stdin += "select svc:/system/console-login";
+            terminal_args.push("select svc:/system/console-login");
         }
-        stdin += "addpg ttymon application";
+        terminal_args.push("addpg ttymon application");
         if let Some(term_name) = name {
-            stdin += &format!("setprop ttymon/device = astring: /dev/term/{}", term_name);
+            terminal_args.push(&format!("setprop ttymon/device = astring: /dev/term/{}", term_name));
         }
-        stdin += &format!("setprop ttymon/terminal_type = astring: {}", terminal_type);
+        terminal_args.push(&format!("setprop ttymon/terminal_type = astring: {}", terminal_type));
         if let Some(term_label) = label {
-            stdin += &format!("setprop ttymon/label = astring: {}", term_label);
+            terminal_args.push(&format!("setprop ttymon/label = astring: {}", term_label));
         } else {
-            stdin += &format!("setprop ttymon/label = astring: console");
+            terminal_args.push(&format!("setprop ttymon/label = astring: console"));
         }
 
         if let Some(term_module) = modules {
-            stdin += &format!("setprop ttymon/modules = astring: {}", term_module);
+            terminal_args.push(&format!("setprop ttymon/modules = astring: {}", term_module));
         } else {
-            stdin += &format!("setprop ttymon/modules = astring: ldterm,ttcompat");
+            terminal_args.push(&format!("setprop ttymon/modules = astring: ldterm,ttcompat"));
         }
 
-        stdin += "setprop ttymon/nohangup = boolean: true";
+        terminal_args.push("setprop ttymon/nohangup = boolean: true");
 
         if let Some(term_prompt) = prompt {
-            stdin += &format!("setprop ttymon/prompt = astring: \"{}\"", term_prompt);
+            terminal_args.push(&format!("setprop ttymon/prompt = astring: \"{}\"", term_prompt));
         } else {
-            stdin += &format!("setprop ttymon/prompt = astring: \"`uname -n` console login:\"");
+            terminal_args.push(&format!("setprop ttymon/prompt = astring: \"`uname -n` console login:\""));
         }
 
-        stdin += "addpg general framework";
+        terminal_args.push("addpg general framework");
 
-        svccfg_stdin(root_path, stdin)
+        svccfg(&terminal_args, alt_root)?;
+
+        Ok(CommandOutput{
+            command: terminal_args.join(";"),
+            root_path: root_path.to_string(),
+            output: String::new()
+        })
     }
 }

@@ -20,6 +20,7 @@ serde_json = "1.0"
 regex = "1"
 lazy_static = "1"
 log = "0.4"
+illumos = { version = "0.0.0", path = "../illumos" }
 
 [dependencies.tera]
 version = "1"

@@ -1,9 +1,6 @@
-mod command;
 mod illumos_driver;
 mod keywords;
 mod mock_driver;
-mod devprop;
-mod svcprop;
 
 extern crate tera;
 
