@@ -1,16 +1,16 @@
 use crate::InstructionError;
 use crate::{CommandOutput, Instruction, NetworkConfig, RootPasswordType};
 use anyhow::{anyhow, Result};
+use illumos::{run, run_capture_stdout, svccfg};
 use libshadow::{parse_shadow_file, SHADOW_FILE};
+use log::{debug, info, warn};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use log::{debug, info, warn};
 use tera::{Context, Tera};
-use illumos::{svccfg, run, run_capture_stdout};
 
 static ZFS_COMMAND: &str = "/usr/sbin/zfs";
 static CP_COMMAND: &str = "/usr/bin/cp";
@@ -135,8 +135,12 @@ fn setup_interface(
                     IPADM_BIN,
                     "-R",
                     root_path,
-                    "-T", "addrconf", "-p", "stateful=yes",
-                    &dev_name_addrconf];
+                    "-T",
+                    "addrconf",
+                    "-p",
+                    "stateful=yes",
+                    &dev_name_addrconf,
+                ];
                 run(&ipadm_addrconf_args, None)?;
                 vec!["-T", "dhcp"]
             }
@@ -146,8 +150,12 @@ fn setup_interface(
                     IPADM_BIN,
                     "-R",
                     root_path,
-                    "-T", "addrconf", "-p", "stateless=yes",
-                    &dev_name_addrconf];
+                    "-T",
+                    "addrconf",
+                    "-p",
+                    "stateless=yes",
+                    &dev_name_addrconf,
+                ];
                 run(&ipadm_addrconf_args, None)?;
                 vec!["-T", "dhcp"]
             }
@@ -158,8 +166,12 @@ fn setup_interface(
                     IPADM_BIN,
                     "-R",
                     root_path,
-                    "-T", "addrconf", "-p", "stateless=yes",
-                    &dev_name_addrconf];
+                    "-T",
+                    "addrconf",
+                    "-p",
+                    "stateless=yes",
+                    &dev_name_addrconf,
+                ];
                 run(&ipadm_addrconf_args, None)?;
                 info!(target: "libsysconfig", "Device {} will have addrconf configured", &device);
                 vec!["-T", "static", "-a", &v6_static]
@@ -179,33 +191,24 @@ fn setup_interface(
         }
     };
 
-    let mut ipadm_args = vec![
-        IPADM_BIN,
-        "-R",
-        root_path];
+    let mut ipadm_args = vec![IPADM_BIN, "-R", root_path];
     ipadm_args.append(&mut addr_conf);
     ipadm_args.push(&dev_name);
 
-    Ok(CommandOutput{
+    Ok(CommandOutput {
         command: ipadm_args.join(" "),
         root_path: root_path.to_string(),
-        output: run_capture_stdout(&ipadm_args, None)?
+        output: run_capture_stdout(&ipadm_args, None)?,
     })
 }
 
 fn add_route(root_path: &str, route_match: String, gateway: String) -> Result<CommandOutput> {
-    let route_args = vec![
-        ROUTE_BIN,
-        "-R",
-        root_path,
-        "-p",
-        &route_match,
-        &gateway];
+    let route_args = vec![ROUTE_BIN, "-R", root_path, "-p", &route_match, &gateway];
     info!(target: "libsysconfig", "Adding route {}->{} to system mounted at {}", &route_match, &gateway, root_path);
-    Ok(CommandOutput{
+    Ok(CommandOutput {
         command: ipadm_args.join(" "),
         root_path: root_path.to_string(),
-        output: run_capture_stdout(&route_args, None)?
+        output: run_capture_stdout(&route_args, None)?,
     })
 }
 
@@ -275,13 +278,16 @@ fn create_dataset(
     } else {
         info!(target: "libsysconfig", "Creating Dataset {}", name);
     }
-    let mut p = prop_args.iter_mut().map(|p| p.as_str()).collect::<Vec<&str>>();
+    let mut p = prop_args
+        .iter_mut()
+        .map(|p| p.as_str())
+        .collect::<Vec<&str>>();
     zfs_args.append(&mut p);
     zfs_args.push(name);
-    Ok(CommandOutput{
+    Ok(CommandOutput {
         command: zfs_args.join(" ").to_string(),
         root_path: root_path.to_string(),
-        output: run_capture_stdout(&zfs_args, None)?
+        output: run_capture_stdout(&zfs_args, None)?,
     })
 }
 
@@ -362,14 +368,23 @@ fn setup_dns(
     let mut dest = File::create(p.join(RESOLV_CONF_FILE))?;
     dest.write(resolv_conf.as_bytes())?;
 
-    let nsswitch_dns_fullpath = p.join(NSSWITCH_DNS_FILE).to_string_lossy().to_string().clone();
-    let nsswitch_conf_fullpath = p.join(NSSWITCH_CONF_FILE).to_string_lossy().to_string().clone();
+    let nsswitch_dns_fullpath = p
+        .join(NSSWITCH_DNS_FILE)
+        .to_string_lossy()
+        .to_string()
+        .clone();
+    let nsswitch_conf_fullpath = p
+        .join(NSSWITCH_CONF_FILE)
+        .to_string_lossy()
+        .to_string()
+        .clone();
 
     let nsswitch_dns_cp = vec![
         nsswitch_dns_fullpath.as_str(),
-        nsswitch_conf_fullpath.as_str()];
+        nsswitch_conf_fullpath.as_str(),
+    ];
 
-    run_command(root_path, HashMap::new(), CP_COMMAND,nsswitch_dns_cp)
+    run_command(root_path, HashMap::new(), CP_COMMAND, nsswitch_dns_cp)
 }
 
 fn setup_keyboard(root_path: &str, keymap: &str) -> Result<CommandOutput> {
@@ -389,10 +404,10 @@ fn setup_keyboard(root_path: &str, keymap: &str) -> Result<CommandOutput> {
 
     svccfg(&keyboard_command, alt_root)?;
 
-    Ok(CommandOutput{
+    Ok(CommandOutput {
         command: keyboard_command.join(" "),
         root_path: root_path.to_string(),
-        output: String::new()
+        output: String::new(),
     })
 }
 
@@ -454,16 +469,13 @@ fn setup_terminal(
     if name == None && label == None && modules == None && prompt == None {
         info!(target: "libsysconfig", "Setting terminal type to {}", terminal_type);
         let ttymon_arg = format!("setprop ttymon/terminal_type = astring: {}", terminal_type);
-        let terminal_args = vec![
-            "select svc:/system/console-login",
-            &ttymon_arg,
-        ];
+        let terminal_args = vec!["select svc:/system/console-login", &ttymon_arg];
         svccfg(&terminal_args, alt_root)?;
 
-        Ok(CommandOutput{
+        Ok(CommandOutput {
             command: terminal_args.join(";"),
             root_path: root_path.to_string(),
-            output: String::new()
+            output: String::new(),
         })
     } else {
         info!(target: "libsysconfig", "Setting terminal up with configuration name={:?} label={:?} modules={:?} prompt={:?} type={}",
@@ -479,9 +491,15 @@ fn setup_terminal(
         }
         terminal_args.push("addpg ttymon application");
         if let Some(term_name) = name {
-            terminal_args.push(&format!("setprop ttymon/device = astring: /dev/term/{}", term_name));
+            terminal_args.push(&format!(
+                "setprop ttymon/device = astring: /dev/term/{}",
+                term_name
+            ));
         }
-        terminal_args.push(&format!("setprop ttymon/terminal_type = astring: {}", terminal_type));
+        terminal_args.push(&format!(
+            "setprop ttymon/terminal_type = astring: {}",
+            terminal_type
+        ));
         if let Some(term_label) = label {
             terminal_args.push(&format!("setprop ttymon/label = astring: {}", term_label));
         } else {
@@ -489,27 +507,37 @@ fn setup_terminal(
         }
 
         if let Some(term_module) = modules {
-            terminal_args.push(&format!("setprop ttymon/modules = astring: {}", term_module));
+            terminal_args.push(&format!(
+                "setprop ttymon/modules = astring: {}",
+                term_module
+            ));
         } else {
-            terminal_args.push(&format!("setprop ttymon/modules = astring: ldterm,ttcompat"));
+            terminal_args.push(&format!(
+                "setprop ttymon/modules = astring: ldterm,ttcompat"
+            ));
         }
 
         terminal_args.push("setprop ttymon/nohangup = boolean: true");
 
         if let Some(term_prompt) = prompt {
-            terminal_args.push(&format!("setprop ttymon/prompt = astring: \"{}\"", term_prompt));
+            terminal_args.push(&format!(
+                "setprop ttymon/prompt = astring: \"{}\"",
+                term_prompt
+            ));
         } else {
-            terminal_args.push(&format!("setprop ttymon/prompt = astring: \"`uname -n` console login:\""));
+            terminal_args.push(&format!(
+                "setprop ttymon/prompt = astring: \"`uname -n` console login:\""
+            ));
         }
 
         terminal_args.push("addpg general framework");
 
         svccfg(&terminal_args, alt_root)?;
 
-        Ok(CommandOutput{
+        Ok(CommandOutput {
             command: terminal_args.join(";"),
             root_path: root_path.to_string(),
-            output: String::new()
+            output: String::new(),
         })
     }
 }

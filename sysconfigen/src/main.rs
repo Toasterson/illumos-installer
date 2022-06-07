@@ -2,14 +2,13 @@ use anyhow::Result;
 use clap::{ArgEnum, Parser, Subcommand};
 use ron::ser::PrettyConfig;
 use serde::Serialize;
+use shrust::{Shell, ShellIO};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{stdout, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 use thiserror::Error;
-use shrust::{Shell, ShellIO};
-
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]

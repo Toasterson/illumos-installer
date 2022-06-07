@@ -1,6 +1,5 @@
 use libcfgparser::KeywordDefinition;
 
-#[allow(dead_code)]
 pub fn get_supported_keywords() -> Vec<(String, KeywordDefinition)> {
     vec![
         ("keyboard".into(), KeywordDefinition { options: vec![] }),

@@ -1,16 +1,16 @@
+use anyhow::Result;
+use clap::Parser;
+use libsysconfig::InstructionsSet;
+use log::{debug, info, trace};
+use slog::{Drain, Logger};
+use slog_async::Async;
+use slog_scope::{set_global_logger, GlobalLoggerGuard};
+use slog_syslog::Facility;
+use slog_term::{CompactFormat, TermDecorator};
 use std::fs;
 use std::fs::File;
 use std::path::PathBuf;
-use anyhow::{Result};
-use clap::{Parser};
 use std::process::Command as PCommand;
-use log::{debug, info, trace};
-use slog::{Logger, Drain};
-use slog_async::Async;
-use slog_scope::{GlobalLoggerGuard, set_global_logger};
-use slog_term::{CompactFormat, TermDecorator};
-use slog_syslog::Facility;
-use libsysconfig::InstructionsSet;
 
 static SMF_CONFIG_FILE_PROPERTY: &str = "config/file";
 static SMF_FINISHED_PROPERTY: &str = "config/finished";
@@ -19,7 +19,7 @@ static SMF_FINISHED_PROPERTY: &str = "config/finished";
 #[clap(author, version, about, long_about = None)]
 struct Cli {
     // File that holds the system config to apply
-    #[clap(long, default_value="/etc/sysconfig.json")]
+    #[clap(long, default_value = "/etc/sysconfig.json")]
     file: PathBuf,
 
     // SMF FMRI is an environment variable that we need. it is set by SMF by default
@@ -27,15 +27,14 @@ struct Cli {
     smf_fmri: Option<String>,
 
     // Alternate root
-    #[clap(short='R', long)]
+    #[clap(short = 'R', long)]
     alt_root: Option<String>,
 }
 
-pub fn init_slog_logging(use_syslog: bool)  -> Result<GlobalLoggerGuard>
-{
+pub fn init_slog_logging(use_syslog: bool) -> Result<GlobalLoggerGuard> {
     if use_syslog {
         let drain = slog_syslog::unix_3164(Facility::LOG_DAEMON)?.fuse();
-        let logger    = Logger::root(drain, slog::slog_o!());
+        let logger = Logger::root(drain, slog::slog_o!());
 
         let scope_guard = set_global_logger(logger);
         let _log_guard = slog_stdlog::init()?;
@@ -43,9 +42,9 @@ pub fn init_slog_logging(use_syslog: bool)  -> Result<GlobalLoggerGuard>
         Ok(scope_guard)
     } else {
         let decorator = TermDecorator::new().stdout().build();
-        let drain     = CompactFormat::new(decorator).build().fuse();
-        let drain     = Async::new(drain).build().fuse();
-        let logger    = Logger::root(drain, slog::slog_o!());
+        let drain = CompactFormat::new(decorator).build().fuse();
+        let drain = Async::new(drain).build().fuse();
+        let logger = Logger::root(drain, slog::slog_o!());
 
         let scope_guard = set_global_logger(logger);
         let _log_guard = slog_stdlog::init()?;
@@ -67,7 +66,7 @@ fn main() -> Result<()> {
         if let Some(finished) = cfg_finished_prop {
             if finished == String::from("true") {
                 debug!(target: "sysconfig", "We have run before in this image exiting");
-                return Ok(())
+                return Ok(());
             }
         }
     } else {

@@ -2,7 +2,7 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use anyhow::{Result};
+use anyhow::Result;
 use pest::Parser;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -136,7 +136,7 @@ impl SysConfigParser {
                         arguments: args,
                     })
                 }
-                _ => {},
+                _ => {}
             }
         }
 
@@ -146,8 +146,8 @@ impl SysConfigParser {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use crate::{Keyword, KeywordDefinition, SysConfigParser};
+    use std::collections::HashMap;
 
     #[test]
     fn initial_test() {
@@ -166,19 +166,26 @@ mod tests {
         );
         let config_ast = parser.parse_config(config_file).unwrap();
         //println!("{:?}", config_ast);
-        assert_eq!(config_ast[0], Keyword{
-            name: "zpool-create".to_string(),
-            options: Some(HashMap::from([("ashift".to_string(), "12".to_string())])),
-            arguments: vec!["mirror".to_string(),
-                            "c1t0d0s0".to_string(),
-                            "c2t0d0s0".to_string(),
-                            "c3t0d0s0".to_string()
-            ]
-        });
-        assert_eq!(config_ast[1], Keyword{
-            name: "locale".to_string(),
-            options: None,
-            arguments: vec!["en_US".to_string()]
-        });
+        assert_eq!(
+            config_ast[0],
+            Keyword {
+                name: "zpool-create".to_string(),
+                options: Some(HashMap::from([("ashift".to_string(), "12".to_string())])),
+                arguments: vec![
+                    "mirror".to_string(),
+                    "c1t0d0s0".to_string(),
+                    "c2t0d0s0".to_string(),
+                    "c3t0d0s0".to_string()
+                ]
+            }
+        );
+        assert_eq!(
+            config_ast[1],
+            Keyword {
+                name: "locale".to_string(),
+                options: None,
+                arguments: vec!["en_US".to_string()]
+            }
+        );
     }
 }

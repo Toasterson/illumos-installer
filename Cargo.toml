@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+	"libimgapi",
 	"libshadow",
 	"libcfgparser",
 	"libsysconfig",

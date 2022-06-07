@@ -5,15 +5,15 @@ mod mock_driver;
 extern crate tera;
 
 use anyhow::{anyhow, Result};
+pub use command::{svccfg, svccfg_stdin};
+pub use keywords::get_supported_keywords;
 use lazy_static::lazy_static;
 use libcfgparser::Keyword;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use thiserror::Error;
-pub use keywords::get_supported_keywords;
 pub use svcprop::svcprop;
-pub use command::{svccfg, svccfg_stdin};
+use thiserror::Error;
 
 pub type InstructionsSet = Vec<Instruction>;
 
@@ -317,7 +317,10 @@ impl Image {
     }
 
     pub fn new_with_driver(root_path: &str, driver: Driver) -> Self {
-        Image { root_path: root_path.into(), driver }
+        Image {
+            root_path: root_path.into(),
+            driver,
+        }
     }
 
     pub fn apply_instructions(&self, instructions: InstructionsSet) -> Result<()> {
